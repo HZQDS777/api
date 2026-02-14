@@ -1,9 +1,13 @@
 <!DOCTYPE html>
+<div id="noticeBar" style="background: #1677ff; color: #ffffff; padding: 10px 30px; text-align: center; font-size: 14px; position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; box-sizing: border-box;">
+  📢欢迎进入小黑微软综合服务站-客服：QQ113575320 全新源头一手 卖完删档拒绝二手 量大价优 招合作伙伴代理 微软长效邮箱批发 令牌号 网页号 api快速取件号 全球特殊后缀邮箱号--承接微软解锁 绑定 风险 改密 授权 邮箱状态分类查询一切微软业务 本站发现非法用途全力配合有关部门打击 ！
+  <span onclick="document.getElementById('noticeBar').style.display='none'" style="position: absolute; right: 30px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold; font-size: 16px; color: #ffffff;">×</span>
+</div>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>微软邮箱令牌取件系统</title>
+<title>微软长效邮箱微软邮箱快捷取件令牌批量管理系统微软令牌号oauth2imapop微软邮箱购买卡网邮箱outlookhotmail微软邮箱解锁无法登录微软邮箱自动发货技术支持-小黑QQ:113575320</title>
 <style>
 body{font-family:Arial,sans-serif;margin:0;padding:0;display:flex;background-color:#121212;overflow-x:hidden;}
 .sidebar{width:250px;background-color:#1e1e1e;color:#e0e0e0;height:100vh;padding:20px;box-sizing:border-box;box-shadow:2px 0 10px rgba(0,0,0,0.5);transition:transform 0.3s ease;position:fixed;z-index:100;}
@@ -14,8 +18,25 @@ body{font-family:Arial,sans-serif;margin:0;padding:0;display:flex;background-col
 .sidebar ul li a:hover{background-color:#3498db;color:#ffffff;transform:translateX(5px);}
 .sidebar ul li a.active{background-color:#3498db;color:#ffffff;font-weight:bold;}
 .sidebar ul li a i{margin-right:10px;font-size:18px;}
+.sidebar ul li .buy-link{background-color:#3498db;color:#ffffff;font-weight:bold;}
+.sidebar ul li .buy-link:hover{background-color:#2980b9;transform:translateX(5px);}
 .content{flex-grow:1;padding:30px;background-color:#121212;margin-left:250px;transition:margin-left 0.3s ease;min-height:100vh;box-sizing:border-box;}
-.menu-toggle{display:none;position:fixed;top:15px;left:15px;z-index:101;background-color:#3498db;color:white;border:none;width:40px;height:40px;border-radius:50%;font-size:20px;cursor-pointer;box-shadow:0 2px 5px rgba(0,0,0,0.3);}
+.menu-toggle{display:none;position:fixed;top:15px;left:15px;z-index:101;background-color:#3498db;color:white;border:none;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,0.3);}
+.mail-search-section{margin:20px 0;display:flex;align-items:center;flex-wrap:wrap;gap:10px;}
+.mail-search-section input[type="text"]{padding:8px;border:1px solid #444;border-radius:4px;width:300px;margin-right:10px;background-color:#2d2d2d;color:#e0e0e0;}
+.mail-search-section button{padding:8px 16px;background-color:#3498db;color:#ffffff;border:none;border-radius:4px;cursor:pointer;transition:background-color 0.3s ease;}
+.mail-search-section button:hover{background-color:#2980b9;}
+.mail-search-section button:nth-child(3){background-color:#4a4a4a;margin-left:10px;}
+.mail-search-section button:nth-child(3):hover{background-color:#5f5f5f;}
+.content-section{display:none;animation:fadeIn 0.5s ease;}
+.content-section.active{display:block;}
+.dashboard-cards{display:flex;gap:20px;margin-bottom:30px;flex-wrap:wrap;}
+.dashboard-card{background-color:#1e1e1e;padding:20px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.5);flex:1;min-width:200px;text-align:center;border:1px solid #333;}
+.dashboard-card h3{margin:0;font-size:18px;color:#e0e0e0;}
+.dashboard-card p{margin:10px 0 0;font-size:24px;color:#3498db;font-weight:bold;}
+.quick-actions{margin-top:30px;display:flex;gap:10px;flex-wrap:wrap;}
+.quick-actions a{flex:1;min-width:140px;padding:12px;background:#3498db;color:white;text-align:center;border-radius:8px;text-decoration:none;transition:background-color 0.3s ease;display:flex;align-items:center;justify-content:center;gap:8px;}
+.quick-actions a:hover{background-color:#2980b9;}
 .upload-section{background-color:#1e1e1e;padding:20px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.5);margin-bottom:20px;border:1px solid #333;}
 .upload-section .upload-box{border:2px dashed #3498db;border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:background-color 0.3s ease;}
 .upload-section .upload-box.dragover{background-color:#2d3436;border-color:#2980b9;}
@@ -24,289 +45,353 @@ body{font-family:Arial,sans-serif;margin:0;padding:0;display:flex;background-col
 .upload-section .upload-box .file-info{margin-top:10px;font-size:14px;color:#3498db;}
 .upload-section .upload-box input[type="file"]{display:none;}
 .upload-section .delimiter-input{margin-top:20px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;}
-.upload-section .delimiter-input input{padding:8px;border:1px solid #444;border-radius:4px;width:200px;background-color:#2d2d2d;color:#e0e0e0;}
+.upload-section .delimiter-input input[type="text"],.upload-section .delimiter-input input[type="password"]{padding:8px;border:1px solid #444;border-radius:4px;width:200px;background-color:#2d2d2d;color:#e0e0e0;}
 .upload-section .delimiter-input button{padding:8px 16px;background-color:#3498db;color:#ffffff;border:none;border-radius:4px;cursor:pointer;transition:background-color 0.3s ease;}
 .upload-section .delimiter-input button:hover{background-color:#2980b9;}
 .group-management{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:20px 0;padding:15px;background-color:#2d2d2d;border-radius:8px;border:1px solid #333;}
 .group-management label{color:#e0e0e0;font-weight:bold;}
-.group-management select,.group-management input{padding:8px;border:1px solid #444;border-radius:4px;background-color:#2d2d2d;color:#e0e0e0;min-width:180px;}
-.group-management button{padding:8px 16px;background-color:#3498db;color:#ffffff;border:none;border-radius:4px;cursor:pointer;}
+.group-management select{padding:8px;border:1px solid #444;border-radius:4px;background-color:#2d2d2d;color:#e0e0e0;min-width:180px;}
+.group-management input[type="text"]{padding:8px;border:1px solid #444;border-radius:4px;width:180px;background-color:#2d2d2d;color:#e0e0e0;}
+.group-management button{padding:8px 16px;background-color:#3498db;color:#ffffff;border:none;border-radius:4px;cursor:pointer;transition:background-color 0.3s ease;}
 .group-management button.delete-group{background-color:#e74c3c;}
 .group-management button.batch-group{background-color:#27ae60;}
+.group-management button:hover{opacity:0.9;}
 .search-section{margin:20px 0;display:flex;align-items:center;flex-wrap:wrap;gap:10px;}
-.search-section input{padding:8px;border:1px solid #444;border-radius:4px;width:300px;background-color:#2d2d2d;color:#e0e0e0;}
-.search-section button{padding:8px 16px;background-color:#3498db;color:#ffffff;border:none;border-radius:4px;cursor:pointer;}
+.search-section input[type="text"]{padding:8px;border:1px solid #444;border-radius:4px;width:300px;background-color:#2d2d2d;color:#e0e0e0;}
+.search-section button{padding:8px 16px;background-color:#3498db;color:#ffffff;border:none;border-radius:4px;cursor:pointer;transition:background-color 0.3s ease;}
+.search-section button:hover{background-color:#2980b9;}
+.search-section button:nth-child(3){background-color:#4a4a4a;}
+.search-section button:nth-child(3):hover{background-color:#5f5f5f;}
 .table-container{overflow-x:auto;margin-top:20px;}
 .email-table,.mail-table{width:100%;min-width:900px;border-collapse:collapse;background-color:#1e1e1e;border-radius:8px;overflow:hidden;box-shadow:0 2px 4px rgba(0,0,0,0.5);border:1px solid #333;}
 .email-table th,.email-table td,.mail-table th,.mail-table td{padding:12px 15px;text-align:left;border-bottom:1px solid #333;font-size:14px;color:#e0e0e0;}
 .email-table th,.mail-table th{background-color:#2d2d2d;color:#ffffff;font-weight:bold;}
 .email-table tr:hover,.mail-table tr:hover{background-color:#2d3436;}
+.email-table td,.mail-table td{word-wrap:break-word;}
 .email-table .refresh-token{max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .email-table .remark-cell{max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .email-table .actions,.mail-table .actions{white-space:nowrap;display:flex;gap:5px;}
-.email-table .actions button,.mail-table .actions button{padding:6px 12px;border:none;border-radius:4px;cursor:pointer;font-size:12px;}
-.email-table .actions button.view{background-color:#3498db;color:#ffffff;}
+.email-table .actions button,.mail-table .actions button{padding:6px 12px;border:none;border-radius:4px;cursor:pointer;font-size:12px;transition:background-color 0.3s ease;}
+.email-table .actions button.view,.mail-table .actions button.view{background-color:#3498db;color:#ffffff;}
 .email-table .actions button.edit{background-color:#27ae60;color:#ffffff;}
-.email-table .actions button.delete{background-color:#e74c3c;color:#ffffff;}
+.email-table .actions button.edit:hover{background-color:#219653;}
+.email-table .actions button.delete,.mail-table .actions button.delete{background-color:#e74c3c;color:#ffffff;}
+.email-table .actions button:hover,.mail-table .actions button:hover{opacity:0.9;}
 .password-toggle{background:transparent;border:none;color:#3498db;cursor:pointer;font-size:12px;padding:0 5px;}
-.pagination-section{display:flex;align-items:center;justify-content:center;margin-top:20px;gap:15px;flex-wrap:wrap;}
-.pagination{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:5px;}
-.pagination button{padding:6px 12px;border:1px solid #3498db;border-radius:4px;background-color:#1e1e1e;color:#3498db;cursor:pointer;}
+.pagination{margin-top:20px;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:5px;}
+.pagination button{padding:6px 12px;margin:0 5px;border:1px solid #3498db;border-radius:4px;background-color:#1e1e1e;color:#3498db;cursor:pointer;transition:background-color 0.3s ease;}
 .pagination button.active{background-color:#3498db;color:#ffffff;}
+.pagination button:hover{background-color:#3498db;color:#ffffff;}
 .no-data{text-align:center;padding:20px;color:#999999;font-size:16px;}
 .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,0.7);justify-content:center;align-items:center;z-index:1000;}
-.modal-content{background-color:#1e1e1e;padding:20px;border-radius:8px;max-width:400px;width:90%;text-align:center;border:1px solid #333;}
-.modal-content h3{color:#e0e0e0;}
+.modal-content{background-color:#1e1e1e;padding:20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.5);max-width:400px;width:90%;text-align:center;border:1px solid #333;}
+.modal-content h3{margin-top:0;color:#e0e0e0;}
 .modal-content p{color:#999999;}
-.modal-content button{padding:8px 16px;background-color:#3498db;color:#ffffff;border:none;border-radius:4px;cursor:pointer;margin:0 5px;}
+.modal-content button{padding:8px 16px;background-color:#3498db;color:#ffffff;border:none;border-radius:4px;cursor:pointer;transition:background-color 0.3s ease;margin:0 5px;}
 .modal-content button.cancel{background-color:#4a4a4a;}
+.modal-content button:hover{background-color:#2980b9;}
+.modal-content button.cancel:hover{background-color:#5f5f5f;}
 .edit-modal-content{max-width:500px;}
 .edit-modal-content .form-group{margin:15px 0;text-align:left;}
 .edit-modal-content label{display:block;margin-bottom:5px;color:#e0e0e0;}
 .edit-modal-content input{width:100%;padding:8px;border:1px solid #444;border-radius:4px;background-color:#2d2d2d;color:#e0e0e0;box-sizing:border-box;}
 .mail-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,0.7);justify-content:center;align-items:center;z-index:1000;}
-.mail-modal-content{background-color:#1e1e1e;padding:20px;border-radius:8px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;border:1px solid #333;}
+.mail-modal-content{background-color:#1e1e1e;padding:20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.5);max-width:600px;width:90%;max-height:80vh;overflow-y:auto;position:relative;border:1px solid #333;}
+.mail-modal-content h3{margin-top:0;color:#e0e0e0;}
+.mail-modal-content p{color:#999999;word-wrap:break-word;}
+.mail-modal-content button{padding:8px 16px;background-color:#3498db;color:#ffffff;border:none;border-radius:4px;cursor:pointer;transition:background-color 0.3s ease;position:sticky;bottom:0;width:100%;margin-top:20px;}
+.mail-modal-content button:hover{background-color:#2980b9;}
 .loading-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,0.7);justify-content:center;align-items:center;z-index:1000;}
 .loading-spinner{border:4px solid #333;border-top:4px solid #3498db;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;}
 @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-.export-btn{background-color:#f39c12 !important;}
-.delete-btn{background-color:#e74c3c !important;}
-.delete-all-btn{background-color:#c0392b !important;}
-#items-per-page{padding:6px 15px;border:1px solid #444;border-radius:5px;background-color:#2d2d2d;color:#e0e0e0;appearance:none;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" stroke="%23e0e0e0" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>');background-repeat:no-repeat;background-position:right 10px center;}
-@media (max-width:768px){
-    body{flex-direction:column;}
-    .sidebar{width:100%;height:auto;transform:translateX(-100%);position:fixed;top:0;left:0;padding:60px 15px 15px;}
-    .sidebar.active{transform:translateX(0);}
-    .menu-toggle{display:block;top:10px;left:10px;}
-    .content{margin-left:0;padding:15px;margin-top:60px;}
-    .email-table{min-width:600px;}
-    .upload-section .delimiter-input,.group-management,.search-section{flex-direction:column;align-items:stretch;}
-    .pagination-section{flex-direction:column;}
-}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.email-handel{display:flex;align-items:center;}
+.email-handel .delimiter-input{justify-content:left;margin-top:0px;}
+.delete-btn{background-color:#e74c3c !important;margin-left:10px !important;}
+.delete-btn:hover{background-color:#e74c3c !important;opacity:0.9 !important;}
+.delete-all-btn{background-color:#c0392b !important;margin-left:10px !important;}
+.delete-all-btn:hover{background-color:#a5281b !important;opacity:0.9 !important;}
+.pagination-section{display:flex;align-items:center;justify-content:center;margin-top:20px;gap:15px;flex-wrap:wrap;}
+.pagination-section .pagination{margin-top:0px;}
+#items-per-page{padding:6px 15px;border:1px solid #444;border-radius:5px;background-color:#2d2d2d;color:#e0e0e0;font-size:16px;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" stroke="%23e0e0e0" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>');background-repeat:no-repeat;background-position:right 10px center;cursor:pointer;transition:border-color 0.3s ease;}
+.export-btn{background-color:#f39c12 !important;margin-left:10px !important;}
+.export-btn:hover{background-color:#e67e22 !important;opacity:0.9 !important;}
+.batch-group-modal-content{max-width:400px;}
+.batch-group-modal-content .form-group{margin:15px 0;text-align:left;}
+@media (max-width: 768px) {body{overflow-x:visible;flex-direction:column;}.sidebar{width:100%;height:auto;transform:translateX(-100%);z-index:1000;position:fixed;top:0;left:0;padding:15px;padding-top:60px;}.sidebar.active{transform:translateX(0);}.menu-toggle{display:block;position:fixed;top:10px;left:10px;z-index:1001;}.content{margin-left:0;padding:15px;width:100%;box-sizing:border-box;margin-top:60px;}.sidebar.active + .content{margin-left:0;}.table-container{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}.email-table,.mail-table{min-width:600px;}.email-table th,.email-table td,.mail-table th,.mail-table td{padding:8px 6px;font-size:12px;}.mail-search-section input[type="text"],.search-section input[type="text"],.upload-section .delimiter-input input[type="text"],.upload-section .delimiter-input input[type="password"]{width:100%;margin-right:0;margin-bottom:10px;}.mail-search-section,.search-section,.upload-section .delimiter-input,.group-management{flex-direction:column;align-items:stretch;gap:10px;}.mail-search-section button,.search-section button,.upload-section .delimiter-input button{width:100%;margin-left:0 !important;}.group-management label{margin-left:0 !important;margin-bottom:5px;}.group-management select,.group-management input[type="text"]{width:100%;min-width:unset;}.quick-actions{flex-direction:column;gap:8px;}.quick-actions a{min-width:unset;width:100%;padding:10px;}.dashboard-cards{flex-direction:column;gap:15px;}.dashboard-card{min-width:unset;}.pagination-section{flex-direction:column;gap:10px;}#items-per-page{width:100%;}.modal-content,.mail-modal-content,.edit-modal-content{width:95%;padding:15px;max-height:90vh;}.mail-modal-content{max-height:80vh;overflow-y:auto;}.email-table .actions,.mail-table .actions{flex-direction:column;gap:3px;}.email-table .actions button,.mail-table .actions button{padding:4px 8px;font-size:11px;width:100%;}}
 </style>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 </head>
 <body>
 <button class="menu-toggle" id="menu-toggle"><i class="fas fa-bars"></i></button>
 <div class="loading-overlay" id="loading-overlay"><div class="loading-spinner"></div></div>
-
 <div class="sidebar" id="sidebar">
-    <h2>令牌取件系统</h2>
-    <ul>
-        <li><a href="#" data-target="dashboard" class="active"><i class="fas fa-tachometer-alt"></i>数据概览</a></li>
-        <li><a href="#" data-target="emails"><i class="fas fa-envelope"></i>邮箱令牌管理</a></li>
-    </ul>
+<h2>小黑邮箱取件系统</h2>
+<ul>
+  <li><a href="#" data-target="dashboard"><i class="fas fa-tachometer-alt"></i>您得微软邮箱数量</a></li>
+  <li><a href="#" data-target="emails" class="active buy-link"><i class="fas fa-envelope"></i>邮箱令牌取件管理</a></li>
+</ul>
+</ul>
 </div>
-
 <div class="content">
-    <div id="dashboard" class="content-section active">
-        <h1 style="color:#3498db">数据概览</h1>
-        <div class="dashboard-cards">
-            <div class="dashboard-card">
-                <h3>已管理邮箱</h3>
-                <p id="account-count">0</p>
-            </div>
-        </div>
-        <div style="margin-top:30px;">
-            <a href="#" data-target="emails" style="background:#3498db;color:white;padding:12px 20px;border-radius:8px;text-decoration:none;display:inline-block;"><i class="fas fa-arrow-right"></i> 进入邮箱管理</a>
-        </div>
-    </div>
-
-    <div id="emails" class="content-section">
-        <h1 style="color:#3498db">邮箱令牌管理</h1>
-        <div class="upload-section">
-            <div class="upload-box" id="upload-box">
-                <i class="fas fa-cloud-upload-alt"></i>
-                <p>点击或拖拽txt文件上传</p>
-                <div class="file-info" id="file-info"></div>
-                <input type="file" id="file-input" accept=".txt">
-            </div>
-            <div class="delimiter-input">
-                <input type="password" id="password" placeholder="验证密码" oninput="setPassword()">
-                <input type="text" id="delimiter" placeholder="分隔符（如----）">
-                <button onclick="importEmails()">导入邮箱</button>
-                <button class="export-btn" onclick="exportData()">导出TXT</button>
-                <button class="delete-btn" onclick="batchDelete()">批量删除</button>
-                <button class="delete-all-btn" onclick="deleteAllEmails()">清空全部</button>
-            </div>
-        </div>
-
-        <div class="group-management">
-            <label for="group-filter">分组筛选：</label>
-            <select id="group-filter" onchange="filterByGroup()"><option value="all">全部分组</option></select>
-            <label for="new-group">新增分组：</label>
-            <input type="text" id="new-group" placeholder="分组名">
-            <button onclick="createGroup()">创建</button>
-            <button class="delete-group" onclick="deleteSelectedGroup()">删除分组</button>
-            <label for="batch-group-select">批量改分组：</label>
-            <select id="batch-group-select"><option value="">选择目标</option></select>
-            <button class="batch-group" onclick="showBatchGroupConfirm()">确认修改</button>
-        </div>
-
-        <div class="search-section">
-            <input type="text" id="email-search" placeholder="搜索邮箱/备注">
-            <button onclick="searchEmails()">搜索</button>
-            <button onclick="clearSearch()">清空</button>
-        </div>
-
-        <div class="table-container">
-            <table class="email-table">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" id="select-all"></th>
-                        <th>邮箱</th>
-                        <th>密码 <button class="password-toggle" onclick="toggleAllPasswords()"><i class="fas fa-eye"></i></button></th>
-                        <th>分组</th>
-                        <th>备注</th>
-                        <th>Client ID</th>
-                        <th>Refresh Token</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-        <div class="no-data" id="no-data">暂无数据</div>
-
-        <div class="pagination-section">
-            <div class="pagination" id="pagination"></div>
-            <select id="items-per-page" onchange="changeItemsPerPage(this.value)">
-                <option value="5">5条/页</option><option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="100">100</option>
-            </select>
-        </div>
-    </div>
-
-    <div id="mail-list" class="content-section">
-        <h1 style="color:#3498db">邮件列表</h1>
-        <div class="search-section">
-            <input type="text" id="mail-search" placeholder="搜索发件人/主题">
-            <button onclick="searchMails()">搜索</button>
-            <button onclick="clearMailSearch()">清空</button>
-        </div>
-        <div class="table-container">
-            <table class="mail-table">
-                <thead><tr><th>发件人</th><th>主题</th><th>日期</th><th>操作</th></tr></thead>
-                <tbody></tbody>
-            </table>
-        </div>
-        <div class="no-data" id="no-data-mail">暂无邮件</div>
-        <div class="pagination" id="pagination-mail"></div>
-    </div>
+<div id="dashboard" class="content-section">
+<h1 style="color: #3498db; font-weight: bold;">邮箱总数</h1>
+<div class="dashboard-cards">
+<div class="dashboard-card">
+<h3>邮箱数量</h3>
+<p id="account-count">0</p>
 </div>
-
-<div class="modal" id="modal"><div class="modal-content"><h3 id="modal-title"></h3><p id="modal-message"></p><button onclick="closeModal()">确认</button></div></div>
-<div class="modal" id="edit-modal"><div class="modal-content edit-modal-content">
-    <h3>编辑邮箱</h3>
-    <input type="hidden" id="edit-email-original">
-    <div class="form-group"><label>邮箱</label><input id="edit-email" readonly></div>
-    <div class="form-group"><label>密码</label><input id="edit-password"></div>
-    <div class="form-group"><label>分组</label><select id="edit-group"></select></div>
-    <div class="form-group"><label>备注</label><input id="edit-remark"></div>
-    <div class="form-group"><label>Client ID</label><input id="edit-client-id"></div>
-    <div class="form-group"><label>Refresh Token</label><input id="edit-refresh-token"></div>
-    <button onclick="saveEdit()">保存</button><button class="cancel" onclick="closeEditModal()">取消</button>
-</div></div>
-<div class="modal" id="confirm-modal"><div class="modal-content">
-    <h3 id="confirm-title">确认</h3><p id="confirm-message"></p>
-    <button onclick="confirmAction()">确认</button><button class="cancel" onclick="closeConfirmModal()">取消</button>
-</div></div>
-<div class="mail-modal" id="mail-modal"><div class="mail-modal-content">
-    <h3 id="mail-modal-title"></h3>
-    <p id="mail-modal-sender"></p><p id="mail-modal-subject"></p><p id="mail-modal-date"></p>
-    <p id="mail-modal-content"></p>
-    <button onclick="closeMailModal()">关闭</button>
-</div></div>
-<div class="modal" id="batch-group-modal"><div class="modal-content">
-    <h3>批量修改分组</h3><p>将 <span id="selected-count">0</span> 个邮箱移入 <span id="target-group-name"></span>？</p>
-    <button onclick="confirmBatchGroup()">确认</button><button class="cancel" onclick="closeBatchGroupModal()">取消</button>
-</div></div>
-
+</div>
+<div class="quick-actions">
+<a href="#" data-target="emails"><i class="fas fa-envelope"></i> 邮箱管理</a>
+</div>
+</div>
+<div id="emails" class="content-section active">
+<h1 style="color: #3498db; font-weight: bold;">邮箱管理</h1>
+<div class="upload-section">
+<div class="upload-box" id="upload-box">
+<i class="fas fa-cloud-upload-alt"></i>
+<p>点击或拖拽文件到此处上传</p>
+<div class="file-info" id="file-info"></div>
+<input type="file" id="file-input" accept=".txt">
+</div>
+<div class="delimiter-input">
+<input type="password" id="password" placeholder="输入验证密码 请联系小黑" oninput="setPassword()">
+<input type="text" id="delimiter" placeholder="输入分隔符（如 ----）">
+<button onclick="importEmails()">导入邮箱</button>
+<button class="export-btn" onclick="exportData()">导出为TXT</button>
+<button class="delete-btn" onclick="batchDelete()">批量删除</button>
+<button class="delete-all-btn" onclick="deleteAllEmails()">删除全部邮箱</button>
+</div>
+</div>
+<div class="group-management">
+<label for="group-filter">分组筛选：</label>
+<select id="group-filter" onchange="filterByGroup()">
+<option value="all">全部分组</option>
+</select>
+<label style="margin-left: 20px;" for="new-group">新增分组：</label>
+<input type="text" id="new-group" placeholder="输入分组名称">
+<button onclick="createGroup()">创建</button>
+<button class="delete-group" onclick="deleteSelectedGroup()">删除选中分组</button>
+<label style="margin-left: 20px;" for="batch-group-select">批量修改分组：</label>
+<select id="batch-group-select">
+<option value="">选择目标分组</option>
+</select>
+<button class="batch-group" onclick="showBatchGroupConfirm()">应用到选中邮箱</button>
+</div>
+<div class="search-section">
+<input type="text" id="email-search" placeholder="输入邮箱/备注关键词搜索...">
+<button onclick="searchEmails()">搜索</button>
+<button onclick="clearSearch()">清空</button>
+</div>
+<div class="table-container">
+<table class="email-table" id="email-table">
+<thead>
+<tr>
+<th><input type="checkbox" id="select-all"></th>
+<th>Email</th>
+<th>Password <button class="password-toggle" onclick="toggleAllPasswords()"><i class="fas fa-eye"></i></button></th>
+<th>分组</th>
+<th>备注</th>
+<th>Client ID</th>
+<th>Refresh Token</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+<div class="no-data" id="no-data">暂无数据</div>
+<div class="pagination-section">
+<div class="pagination" id="pagination">
+<button onclick="changePage(1)">1</button>
+</div>
+<select id="items-per-page" onchange="changeItemsPerPage(this.value)">
+<option value="5">5 条/页</option>
+<option value="10">10 条/页</option>
+<option value="20">20 条/页</option>
+<option value="50">50 条/页</option>
+<option value="100">100 条/页</option>
+<option value="200">200 条/页</option>
+<option value="500">500 条/页</option>
+<option value="5000">5000 条/页</option>
+<option value="10000">10000 条/页</option>
+</select>
+</div>
+</div>
+<div id="mail-list" class="content-section">
+<h1>邮件列表</h1>
+<div class="mail-search-section">
+<input type="text" id="mail-search" placeholder="输入发件人或主题关键词搜索...">
+<button onclick="searchMails()">搜索</button>
+<button onclick="clearMailSearch()">清空</button>
+</div>
+<div class="table-container">
+<table class="mail-table" id="mail-table">
+<thead>
+<tr>
+<th>发件人</th>
+<th>主题</th>
+<th>日期</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+<div class="no-data" id="no-data-mail">暂无数据</div>
+<div class="pagination" id="pagination-mail">
+<button onclick="changeMailPage(1)">1</button>
+</div>
+</div>
+</div>
+<div class="modal" id="modal">
+<div class="modal-content">
+<h3 id="modal-title"></h3>
+<p id="modal-message"></p>
+<button onclick="closeModal()">确认</button>
+</div>
+</div>
+<div class="modal" id="edit-modal">
+<div class="modal-content edit-modal-content">
+<h3>编辑邮箱信息</h3>
+<input type="hidden" id="edit-email-original">
+<div class="form-group">
+<label for="edit-email">邮箱地址（不可修改）</label>
+<input type="text" id="edit-email" readonly>
+</div>
+<div class="form-group">
+<label for="edit-password">密码</label>
+<input type="text" id="edit-password">
+</div>
+<div class="form-group">
+<label for="edit-group">分组</label>
+<select id="edit-group">
+<option value="默认分组">默认分组</option>
+</select>
+</div>
+<div class="form-group">
+<label for="edit-remark">备注</label>
+<input type="text" id="edit-remark" placeholder="输入备注信息（可选）">
+</div>
+<div class="form-group">
+<label for="edit-client-id">Client ID</label>
+<input type="text" id="edit-client-id">
+</div>
+<div class="form-group">
+<label for="edit-refresh-token">Refresh Token</label>
+<input type="text" id="edit-refresh-token">
+</div>
+<button onclick="saveEdit()">保存</button>
+<button class="cancel" onclick="closeEditModal()">取消</button>
+</div>
+</div>
+<div class="modal" id="confirm-modal">
+<div class="modal-content">
+<h3 id="confirm-title">确认操作</h3>
+<p id="confirm-message"></p>
+<button onclick="confirmAction()">确认</button>
+<button class="cancel" onclick="closeConfirmModal()">取消</button>
+</div>
+</div>
+<div class="mail-modal" id="mail-modal">
+<div class="mail-modal-content">
+<h3 id="mail-modal-title"></h3>
+<p id="mail-modal-sender"></p>
+<p id="mail-modal-subject"></p>
+<p id="mail-modal-date"></p>
+<p id="mail-modal-content"></p>
+<button onclick="closeMailModal()">关闭</button>
+</div>
+</div>
+<div class="modal" id="batch-group-modal">
+<div class="modal-content batch-group-modal-content">
+<h3>批量修改分组</h3>
+<p>确定要将选中的 <span id="selected-count">0</span> 个邮箱修改到分组：<span id="target-group-name">默认分组</span> 吗？</p>
+<button onclick="confirmBatchGroup()">确认</button>
+<button class="cancel" onclick="closeBatchGroupModal()">取消</button>
+</div>
+</div>
 <script>
-const ENCRYPT_KEY = "email_token_2026";
-let mailData = [], originalMailData = [];
-let currentMailPage = 1, mailItemsPerPage = 10;
-let searchKeyword = "", mailSearchKeyword = "";
-let passwordVisible = false, confirmCallback = null;
-let currentGroupFilter = "all", currentPage = 1, itemsPerPage = 5;
-let selectedItems = [];
-
-function getGroups(){try{const d=CryptoJS.AES.decrypt(localStorage.getItem("emailGroups")||"",ENCRYPT_KEY).toString(CryptoJS.enc.Utf8);return d?JSON.parse(d):["默认分组"]}catch(e){return["默认分组"]}}
-function saveGroups(g){localStorage.setItem("emailGroups",CryptoJS.AES.encrypt(JSON.stringify(g),ENCRYPT_KEY).toString());updateGroupSelectors()}
-function updateGroupSelectors(){const g=getGroups();["group-filter","batch-group-select","edit-group"].forEach(id=>{const e=document.getElementById(id);if(!e)return;const v=e.value;e.innerHTML="";if(id==="group-filter"){const o=document.createElement("option");o.value="all";o.textContent="全部分组";e.appendChild(o)}if(id==="batch-group-select"){const o=document.createElement("option");o.value="";o.textContent="选择目标分组";e.appendChild(o)}g.forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;e.appendChild(o)});e.value=v||(id==="edit-group"?"默认分组":"")})}
-function encryptData(d){return CryptoJS.AES.encrypt(JSON.stringify(d),ENCRYPT_KEY).toString()}
-function decryptData(c){try{return JSON.parse(CryptoJS.AES.decrypt(c,ENCRYPT_KEY).toString(CryptoJS.enc.Utf8))}catch(e){return[]}}
-function showLoading(){document.getElementById("loading-overlay").style.display="flex"}
-function hideLoading(){document.getElementById("loading-overlay").style.display="none"}
-function showModal(t,m){document.getElementById("modal-title").textContent=t;document.getElementById("modal-message").innerHTML=m;document.getElementById("modal").style.display="flex"}
-function showConfirmModal(t,m,c){confirmCallback=c;document.getElementById("confirm-title").textContent=t;document.getElementById("confirm-message").textContent=m;document.getElementById("confirm-modal").style.display="flex"}
-function confirmAction(){confirmCallback&&confirmCallback();closeConfirmModal()}
-function closeModal(){document.getElementById("modal").style.display="none"}
-function closeConfirmModal(){document.getElementById("confirm-modal").style.display="none";confirmCallback=null}
-function closeEditModal(){document.getElementById("edit-modal").style.display="none"}
-function closeMailModal(){document.getElementById("mail-modal").style.display="none"}
-function closeBatchGroupModal(){document.getElementById("batch-group-modal").style.display="none"}
-
-document.addEventListener("DOMContentLoaded",()=>{
-    document.querySelectorAll(".sidebar a").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();document.querySelectorAll(".sidebar a").forEach(i=>i.classList.remove("active"));a.classList.add("active");const t=a.dataset.target;document.querySelectorAll(".content-section").forEach(s=>s.classList.remove("active"));document.getElementById(t).classList.add("active");if(window.innerWidth<769)document.getElementById("sidebar").classList.remove("active")}));
-    document.getElementById("menu-toggle").addEventListener("click",()=>document.getElementById("sidebar").classList.toggle("active"));
-    document.addEventListener("click",e=>{if(!document.getElementById("sidebar").contains(e.target)&&e.target!==document.getElementById("menu-toggle"))document.getElementById("sidebar").classList.remove("active")});
-    initGroups();loadData();initSelectAll();initDragUpload();initSearchEnter()
-});
-
-function initGroups(){const g=getGroups();if(!g.includes("默认分组")){g.unshift("默认分组");saveGroups(g)}updateGroupSelectors()}
-function loadData(){const data=decryptData(localStorage.getItem("emailData")||"");const pwd=decryptData(localStorage.getItem("password")||"");if(pwd)document.getElementById("password").value=pwd;let f=data;if(currentGroupFilter!=="all")f=f.filter(i=>i.group===currentGroupFilter);if(searchKeyword)f=f.filter(i=>i.email.toLowerCase().includes(searchKeyword)||i.remark.toLowerCase().includes(searchKeyword));renderTable(f);renderPagination(f.length);document.getElementById("no-data").style.display=f.length?"none":"block";document.getElementById("account-count").textContent=data.length}
-function renderTable(d){const b=document.querySelector(".email-table tbody");b.innerHTML="";const s=(currentPage-1)*itemsPerPage,e=s+parseInt(itemsPerPage);d.slice(s,e).forEach((i,idx)=>{const r=document.createElement("tr");r.innerHTML=`<td><input type="checkbox" data-email="${i.email}"></td>
-<td>${i.email}</td>
-<td><span class="pwd">${passwordVisible?i.password:"••••••••"}</span><button class="password-toggle" onclick="togglePwd(this)"><i class="fas fa-${passwordVisible?"eye-slash":"eye"}"></i></button></td>
-<td>${i.group||"默认分组"}</td>
-<td title="${i.remark||""}">${i.remark||"无"}</td>
-<td>${i.clientId}</td>
-<td title="${i.refreshToken}" class="refresh-token">${i.refreshToken}</td>
+const ENCRYPT_KEY='xh_email_system_2024';let mailData=[];let originalMailData=[];let currentMailPage=1;const mailItemsPerPage=10;let searchKeyword='';let mailSearchKeyword='';let passwordVisible=false;let confirmCallback=null;let currentGroupFilter='all';
+function getGroups(){const encryptedData=localStorage.getItem('emailGroups')||'';if(encryptedData){try{const decrypted=CryptoJS.AES.decrypt(encryptedData,ENCRYPT_KEY).toString(CryptoJS.enc.Utf8);return decrypted&&Array.isArray(JSON.parse(decrypted))?JSON.parse(decrypted):['默认分组'];}catch(e){return['默认分组'];}}return['默认分组'];}
+function saveGroups(groups){localStorage.setItem('emailGroups',CryptoJS.AES.encrypt(JSON.stringify(groups),ENCRYPT_KEY).toString());updateGroupSelectors();}
+function updateGroupSelectors(){const groups=getGroups();const selectElements=[document.getElementById('group-filter'),document.getElementById('batch-group-select'),document.getElementById('edit-group')];selectElements.forEach(select=>{if(select){const currentValue=select.value;select.innerHTML='';if(select.id==='group-filter'){const allOption=document.createElement('option');allOption.value='all';allOption.textContent='全部分组';select.appendChild(allOption);}else if(select.id==='batch-group-select'){const emptyOption=document.createElement('option');emptyOption.value='';emptyOption.textContent='选择目标分组';select.appendChild(emptyOption);}groups.forEach(group=>{const option=document.createElement('option');option.value=group;option.textContent=group;select.appendChild(option);});if(currentValue&&(select.id==='group-filter'||groups.includes(currentValue))){select.value=currentValue;}}});}
+document.addEventListener('DOMContentLoaded',function(){initSidebarLinks();initQuickActions();initSelectAll();initDragUpload();initSearchEnter();initGroups();loadData();initWindowResize();initDevInfo();});
+function initGroups(){const groups=getGroups();if(!groups.includes('默认分组')){groups.unshift('默认分组');saveGroups(groups);}updateGroupSelectors();}
+function initSidebarLinks(){document.querySelectorAll('.sidebar ul li a').forEach(link=>{link.addEventListener('click',function(e){if(this.hasAttribute('target')&&this.target==='_blank'){return;}e.preventDefault();document.querySelectorAll('.sidebar ul li a').forEach(l=>l.classList.remove('active'));this.classList.add('active');const targetId=this.getAttribute('data-target');if(!targetId)return;document.querySelectorAll('.content-section').forEach(section=>{section.classList.remove('active');});const targetSection=document.getElementById(targetId);if(targetSection){targetSection.classList.add('active');}if(window.innerWidth<=768){document.getElementById('sidebar').classList.remove('active');}});});}
+function initQuickActions(){document.querySelectorAll('.quick-actions a').forEach(link=>{link.addEventListener('click',function(e){if(this.hasAttribute('target')&&this.target==='_blank'){return;}e.preventDefault();const targetId=this.getAttribute('data-target');if(!targetId)return;document.querySelectorAll('.sidebar ul li a').forEach(l=>l.classList.remove('active'));document.querySelector(`.sidebar ul li a[data-target="${targetId}"]`).classList.add('active');document.querySelectorAll('.content-section').forEach(section=>{section.classList.remove('active');});const targetSection=document.getElementById(targetId);if(targetSection){targetSection.classList.add('active');}});});}
+document.getElementById('menu-toggle').addEventListener('click',function(){const sidebar=document.getElementById('sidebar');sidebar.classList.toggle('active');const content=document.querySelector('.content');content.classList.toggle('active-content');});
+document.addEventListener('click',function(e){const sidebar=document.getElementById('sidebar');const menuToggle=document.getElementById('menu-toggle');if(!sidebar.contains(e.target)&&e.target!==menuToggle){sidebar.classList.remove('active');document.querySelector('.content').classList.remove('active-content');}});
+document.addEventListener('touchstart',function(e){const startX=e.touches[0].clientX;document.addEventListener('touchmove',function(e){const currentX=e.touches[0].clientX;if(currentX-startX>20&&document.getElementById('sidebar').classList.contains('active')){document.getElementById('sidebar').classList.remove('active');document.querySelector('.content').classList.remove('active-content');}});});
+function encryptData(data){return CryptoJS.AES.encrypt(JSON.stringify(data),ENCRYPT_KEY).toString();}
+function decryptData(cipherText){try{const bytes=CryptoJS.AES.decrypt(cipherText,ENCRYPT_KEY);return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));}catch(e){return null;}}
+function showLoading(){document.getElementById('loading-overlay').style.display='flex';}
+function hideLoading(){document.getElementById('loading-overlay').style.display='none';}
+let currentPage=1;let itemsPerPage=5;
+function loadData(){const encryptedData=localStorage.getItem('emailData')||'';let data=[];if(encryptedData){data=decryptData(encryptedData)||[];}data=data.map(item=>({group:item.group||'默认分组',remark:item.remark||'',...item}));localStorage.setItem('emailData',encryptData(data));const encryptedPassword=localStorage.getItem('password')||'';if(encryptedPassword){const decryptedPwd=decryptData(encryptedPassword);if(decryptedPwd){document.getElementById('password').value=decryptedPwd;}}let filteredData=data;if(currentGroupFilter!=='all'){filteredData=filteredData.filter(item=>item.group===currentGroupFilter);}if(searchKeyword){filteredData=filteredData.filter(item=>item.email.toLowerCase().includes(searchKeyword)||item.remark.toLowerCase().includes(searchKeyword));}renderTable(filteredData);renderPagination(filteredData.length);toggleNoData(filteredData.length===0);updateDashboard(data);}
+function renderTable(data){const emailTableBody=document.querySelector('#email-table tbody');emailTableBody.innerHTML='';const start=(currentPage-1)*itemsPerPage;const end=start+itemsPerPage;const pageData=data.slice(start,end);pageData.forEach((item,index)=>{const row=document.createElement('tr');const checkboxCell=document.createElement('td');const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.dataset.email=item.email;checkboxCell.appendChild(checkbox);row.appendChild(checkboxCell);const passwordCell=document.createElement('td');passwordCell.className='password-cell';const passwordSpan=document.createElement('span');passwordSpan.className='password-text';passwordSpan.textContent=passwordVisible?item.password:'••••••••';const toggleBtn=document.createElement('button');toggleBtn.className='password-toggle';toggleBtn.innerHTML=passwordVisible?'<i class="fas fa-eye-slash"></i>':'<i class="fas fa-eye"></i>';toggleBtn.onclick=(e)=>{e.stopPropagation();const isVisible=passwordSpan.textContent!=='••••••••';passwordSpan.textContent=isVisible?'••••••••':item.password;toggleBtn.innerHTML=isVisible?'<i class="fas fa-eye"></i>':'<i class="fas fa-eye-slash"></i>';};passwordCell.appendChild(passwordSpan);passwordCell.appendChild(toggleBtn);row.appendChild(document.createElement('td')).textContent=item.email;row.appendChild(passwordCell);row.appendChild(document.createElement('td')).textContent=item.group||'默认分组';const remarkCell=document.createElement('td');remarkCell.className='remark-cell';remarkCell.title=item.remark||'无备注';remarkCell.textContent=item.remark||'无备注';row.appendChild(remarkCell);row.appendChild(document.createElement('td')).textContent=item.clientId;const refreshTokenCell=document.createElement('td');refreshTokenCell.className='refresh-token';refreshTokenCell.title=item.refreshToken;refreshTokenCell.textContent=item.refreshToken;row.appendChild(refreshTokenCell);const actionsCell=document.createElement('td');actionsCell.className='actions';actionsCell.innerHTML=`
+<button class="view" onclick="viewInbox(${start + index})">收件箱</button>
+<button class="view" onclick="viewJunk(${start + index})">垃圾箱</button>
+<button class="edit" onclick="editEmail(${start + index})">编辑</button>
+<button class="delete" onclick="showDeleteConfirm(${start + index})">删除</button>
+`;row.appendChild(actionsCell);emailTableBody.appendChild(row);});}
+function initSelectAll(){document.getElementById('select-all').addEventListener('change',function(){const checkboxes=document.querySelectorAll('#email-table tbody input[type="checkbox"]');checkboxes.forEach(checkbox=>{checkbox.checked=this.checked;});updateSelectedItems();});document.querySelector('#email-table tbody').addEventListener('change',function(event){if(event.target.type==='checkbox'){updateSelectedItems();}});}
+let selectedItems=[];
+function updateSelectedItems(){const checkboxes=document.querySelectorAll('#email-table tbody input[type="checkbox"]:checked');selectedItems=Array.from(checkboxes).map(checkbox=>{return checkbox.dataset.email;});}
+function batchDelete(){if(selectedItems.length===0){showModal('提示','请选择要删除的项！');return;}showConfirmModal('确认批量删除',`确定要删除选中的 ${selectedItems.length} 项吗？删除后不可恢复`,function(){const encryptedData=localStorage.getItem('emailData')||'';let data=encryptedData?decryptData(encryptedData)||[]:[];const filteredData=data.filter(item=>!selectedItems.includes(item.email));localStorage.setItem('emailData',encryptData(filteredData));loadData();showModal('删除成功',`已删除选中的 ${selectedItems.length} 项邮箱`);});}
+function deleteAllEmails(){const encryptedData=localStorage.getItem('emailData')||'';let data=encryptedData?decryptData(encryptedData)||[]:[];if(data.length===0){showModal('提示','当前没有邮箱数据可删除！');return;}showConfirmModal('警告','此操作将删除所有邮箱数据，且无法恢复。是否确认删除？',function(){localStorage.removeItem('emailData');loadData();showModal('删除成功','所有邮箱数据已全部删除！');});}
+function renderPagination(totalItems){const pagination=document.getElementById('pagination');pagination.innerHTML='';const totalPages=Math.ceil(totalItems/itemsPerPage);const maxButtons=5;let startPage=Math.max(1,currentPage-Math.floor(maxButtons/2));let endPage=Math.min(totalPages,startPage+maxButtons-1);if(endPage-startPage+1<maxButtons){startPage=Math.max(1,endPage-maxButtons+1);}if(currentPage>1){const prevButton=document.createElement('button');prevButton.textContent='上一页';prevButton.onclick=()=>changePage(currentPage-1);pagination.appendChild(prevButton);}if(startPage>1){const firstButton=document.createElement('button');firstButton.textContent='1';firstButton.onclick=()=>changePage(1);pagination.appendChild(firstButton);if(startPage>2){const ellipsis=document.createElement('span');ellipsis.textContent='...';pagination.appendChild(ellipsis);}}for(let i=startPage;i<=endPage;i++){const button=document.createElement('button');button.textContent=i;if(i===currentPage){button.classList.add('active');}button.onclick=()=>changePage(i);pagination.appendChild(button);}if(endPage<totalPages){if(endPage<totalPages-1){const ellipsis=document.createElement('span');ellipsis.textContent='...';pagination.appendChild(ellipsis);}const lastButton=document.createElement('button');lastButton.textContent=totalPages;lastButton.onclick=()=>changePage(totalPages);pagination.appendChild(lastButton);}if(currentPage<totalPages){const nextButton=document.createElement('button');nextButton.textContent='下一页';nextButton.onclick=()=>changePage(currentPage+1);pagination.appendChild(nextButton);}}
+function changePage(page){currentPage=page;const encryptedData=localStorage.getItem('emailData')||'';let data=encryptedData?decryptData(encryptedData)||[]:[];let filteredData=data;if(currentGroupFilter!=='all'){filteredData=filteredData.filter(item=>item.group===currentGroupFilter);}if(searchKeyword){filteredData=filteredData.filter(item=>item.email.toLowerCase().includes(searchKeyword)||item.remark.toLowerCase().includes(searchKeyword));}renderTable(filteredData);renderPagination(filteredData.length);}
+function changeItemsPerPage(value){itemsPerPage=parseInt(value,10);currentPage=1;const encryptedData=localStorage.getItem('emailData')||'';let data=encryptedData?decryptData(encryptedData)||[]:[];let filteredData=data;if(currentGroupFilter!=='all'){filteredData=filteredData.filter(item=>item.group===currentGroupFilter);}if(searchKeyword){filteredData=filteredData.filter(item=>item.email.toLowerCase().includes(searchKeyword)||item.remark.toLowerCase().includes(searchKeyword));}renderTable(filteredData);renderPagination(filteredData.length);}
+function toggleNoData(isEmpty){const noData=document.getElementById('no-data');noData.style.display=isEmpty?'block':'none';}
+function viewInbox(index){const encryptedData=localStorage.getItem('emailData')||'';let data=encryptedData?decryptData(encryptedData)||[]:[];let filteredData=data;if(currentGroupFilter!=='all'){filteredData=filteredData.filter(item=>item.group===currentGroupFilter);}if(searchKeyword){filteredData=filteredData.filter(item=>item.email.toLowerCase().includes(searchKeyword)||item.remark.toLowerCase().includes(searchKeyword));}const item=filteredData[index];currentMailPage=1;mailSearchKeyword='';document.getElementById('mail-search').value='';loadMailList(item.refreshToken,item.clientId,item.email,'INBOX');}
+function viewJunk(index){const encryptedData=localStorage.getItem('emailData')||'';let data=encryptedData?decryptData(encryptedData)||[]:[];let filteredData=data;if(currentGroupFilter!=='all'){filteredData=filteredData.filter(item=>item.group===currentGroupFilter);}if(searchKeyword){filteredData=filteredData.filter(item=>item.email.toLowerCase().includes(searchKeyword)||item.remark.toLowerCase().includes(searchKeyword));}const item=filteredData[index];currentMailPage=1;mailSearchKeyword='';document.getElementById('mail-search').value='';loadMailList(item.refreshToken,item.clientId,item.email,'Junk');}
+function loadMailList(refreshToken,clientId,email,mailbox){showLoading();const encryptedPassword=localStorage.getItem('password')||'';let password='';if(encryptedPassword){const decryptedPwd=decryptData(encryptedPassword);password=decryptedPwd||'';}const apiUrl=`/api/mail-all?refresh_token=${refreshToken}&client_id=${clientId}&email=${email}&mailbox=${mailbox}&response_type=json&password=${password}`;fetch(apiUrl).then(response=>{if(!response.ok){if(response.status===500){return response.json().then(errorData=>{if(errorData.error==="Nothing to fetch"){mailData=[];originalMailData=[];document.querySelectorAll('.content-section').forEach(section=>section.classList.remove('active'));document.getElementById('mail-list').classList.add('active');renderMailTable(mailData);return Promise.resolve();}else{throw new Error('服务器内部错误，请稍后重试。');}});}else{if(response.status===401){throw response;}throw new Error(`请求失败，状态码：${response.status}`);}}return response.json();}).then(data=>{if(data){mailData=data;originalMailData=[...data];document.querySelectorAll('.content-section').forEach(section=>section.classList.remove('active'));document.getElementById('mail-list').classList.add('active');renderMailTable(mailData);}}).catch(error=>{if(error.status===401){showModal('提示','已加密码验证。如需使用请卡网购买68一年或万起购号免费提供使用，请联系管理员小黑QQ：113575320。');return;}if(error.message.includes('服务器内部错误')){showModal('错误','服务器内部错误，请稍后重试。');}else{showModal('错误','无法加载邮件数据，请检查网络连接或稍后重试。');}}).finally(()=>{hideLoading();});}
+function renderMailTable(data){const mailTableBody=document.querySelector('#mail-table tbody');mailTableBody.innerHTML='';if(data.length===0){document.getElementById('no-data-mail').style.display='block';}else{document.getElementById('no-data-mail').style.display='none';}const start=(currentMailPage-1)*mailItemsPerPage;const end=start+mailItemsPerPage;const pageData=data.slice(start,end);pageData.forEach((item,index)=>{const row=document.createElement('tr');row.innerHTML=`
+<td>${item.send}</td>
+<td>${item.subject}</td>
+<td>${item.date}</td>
 <td class="actions">
-<button onclick="viewInbox(${s+idx})">收件箱</button>
-<button onclick="viewJunk(${s+idx})">垃圾箱</button>
-<button onclick="editEmail(${s+idx})">编辑</button>
-<button onclick="delEmail(${s+idx})">删除</button>
-</td>`;b.appendChild(r)})}
-function renderPagination(t){const p=document.getElementById("pagination");p.innerHTML="";const total=Math.ceil(t/itemsPerPage);if(currentPage>1)p.innerHTML+=`<button onclick="changePage(${currentPage-1})">上一页</button>`;for(let i=1;i<=total;i++)p.innerHTML+=`<button ${i===currentPage?'class="active"':""} onclick="changePage(${i})">${i}</button>`;if(currentPage<total)p.innerHTML+=`<button onclick="changePage(${currentPage+1})">下一页</button>`}
-function changePage(p){currentPage=p;loadData()}
-function changeItemsPerPage(v){itemsPerPage=v;currentPage=1;loadData()}
-function initSelectAll(){document.getElementById("select-all").onchange=()=>{document.querySelectorAll(".email-table input[type='checkbox']").forEach(c=>c.checked=document.getElementById("select-all").checked);updateSelected()};document.querySelector(".email-table tbody").onchange=updateSelected}
-function updateSelected(){selectedItems=Array.from(document.querySelectorAll(".email-table input[type='checkbox']:checked")).map(c=>c.dataset.email)}
-function togglePwd(b){const s=b.previousElementSibling;s.textContent=s.textContent==="••••••••"?b.closest("tr").querySelector("td:nth-child(2)").textContent:("••••••••")}
-function toggleAllPasswords(){passwordVisible=!passwordVisible;document.querySelectorAll(".pwd").forEach((s,i)=>{const e=document.querySelectorAll(".email-table tbody td:nth-child(2)")[i];const d=decryptData(localStorage.getItem("emailData")).find(x=>x.email===e.textContent);s.textContent=passwordVisible?d.password:"••••••••"});document.querySelector(".password-toggle i").className=passwordVisible?"fas fa-eye-slash":"fas fa-eye"}
-
-function importEmails(){const sep=document.getElementById("delimiter").value;const f=document.getElementById("file-input").files[0];if(!sep||!f){showModal("提示","请选择文件并输入分隔符");return}const r=new FileReader();r.onload=e=>{showLoading();const lines=e.target.result.split("\n").filter(l=>l.trim());const data=decryptData(localStorage.getItem("emailData")||[]);const exist=new Set(data.map(i=>i.email.toLowerCase()));let ok=0,dup=0,err=0;lines.forEach(l=>{const fs=l.split(sep).map(x=>x.trim());if(fs.length<4){err++;return}const em=fs[0],pw=fs[1],cid=fs[2],rt=fs[3];if(!em||!pw||!cid||!rt||exist.has(em.toLowerCase())){exist.has(em.toLowerCase())?dup++:err++;return}data.push({email:em,password:pw,group:"默认分组",remark:"",clientId:cid,refreshToken:rt});exist.add(em.toLowerCase());ok++});localStorage.setItem("emailData",encryptData(data));loadData();hideLoading();showModal("导入完成",`成功：${ok} 条<br>重复：${dup} 条<br>错误：${err} 条`)};r.readAsText(f)}
-function exportData(){const d=decryptData(localStorage.getItem("emailData")||[]);if(!d.length){showModal("提示","无数据可导出");return}const t=d.map(i=>`${i.email}----${i.password}----${i.group}----${i.remark}----${i.clientId}----${i.refreshToken}`).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:"text/plain"}));a.download="邮箱令牌备份.txt";a.click();URL.revokeObjectURL(a.href);showModal("成功","已导出TXT")}
-function batchDelete(){if(!selectedItems.length){showModal("提示","请选择邮箱");return}showConfirmModal("确认","确定删除选中项？",()=>{let d=decryptData(localStorage.getItem("emailData")||[]);d=d.filter(i=>!selectedItems.includes(i.email));localStorage.setItem("emailData",encryptData(d));loadData();showModal("成功","删除完成")})}
-function deleteAllEmails(){showConfirmModal("警告","确定清空所有数据？",()=>{localStorage.removeItem("emailData");loadData();showModal("成功","已清空全部数据")})}
-function delEmail(idx){const d=decryptData(localStorage.getItem("emailData")||[]);let f=d;if(currentGroupFilter!=="all")f=f.filter(i=>i.group===currentGroupFilter);if(searchKeyword)f=f.filter(i=>i.email.toLowerCase().includes(searchKeyword));const em=f[idx].email;showConfirmModal("确认",`删除 ${em}？`,()=>{const nd=d.filter(i=>i.email!==em);localStorage.setItem("emailData",encryptData(nd));loadData();showModal("成功","已删除")})}
-function editEmail(idx){const d=decryptData(localStorage.getItem("emailData")||[]);let f=d;if(currentGroupFilter!=="all")f=f.filter(i=>i.group===currentGroupFilter);if(searchKeyword)f=f.filter(i=>i.email.toLowerCase().includes(searchKeyword));const i=f[idx];document.getElementById("edit-email-original").value=i.email;document.getElementById("edit-email").value=i.email;document.getElementById("edit-password").value=i.password;document.getElementById("edit-client-id").value=i.clientId;document.getElementById("edit-refresh-token").value=i.refreshToken;document.getElementById("edit-remark").value=i.remark;updateGroupSelectors();document.getElementById("edit-group").value=i.group||"默认分组";document.getElementById("edit-modal").style.display="flex"}
-function saveEdit(){const e=document.getElementById("edit-email-original").value;const pw=document.getElementById("edit-password").value;const g=document.getElementById("edit-group").value;const rk=document.getElementById("edit-remark").value;const cid=document.getElementById("edit-client-id").value;const rt=document.getElementById("edit-refresh-token").value;if(!pw||!cid||!rt){showModal("错误","密码、CID、RT不能为空");return}let d=decryptData(localStorage.getItem("emailData")||[]);const i=d.findIndex(x=>x.email===e);if(i>-1){d[i]={...d[i],password:pw,group:g,remark:rk,clientId:cid,refreshToken:rt};localStorage.setItem("emailData",encryptData(d));loadData();closeEditModal();showModal("成功","保存完成")}}
-
-function createGroup(){const n=document.getElementById("new-group").value.trim();if(!n){showModal("错误","分组名不能为空");return}const g=getGroups();if(g.includes(n)){showModal("错误","分组已存在");return}g.push(n);saveGroups(g);document.getElementById("new-group").value="";showModal("成功","创建完成")}
-function deleteSelectedGroup(){const g=document.getElementById("group-filter").value;if(g==="all"||g==="默认分组"){showModal("错误","无法删除该分组");return}showConfirmModal("确认",`删除分组 ${g}？邮箱将移入默认分组`,()=>{let d=decryptData(localStorage.getItem("emailData")||[]);d=d.map(i=>i.group===g?{...i,group:"默认分组"}:i);localStorage.setItem("emailData",encryptData(d));const gs=getGroups().filter(x=>x!==g);saveGroups(gs);currentGroupFilter="all";document.getElementById("group-filter").value="all";loadData();showModal("成功","删除完成")})}
-function filterByGroup(){currentGroupFilter=document.getElementById("group-filter").value;currentPage=1;loadData()}
-function showBatchGroupConfirm(){const t=document.getElementById("batch-group-select").value;if(!t||!selectedItems.length){showModal("提示","请选择目标分组和邮箱");return}document.getElementById("selected-count").textContent=selectedItems.length;document.getElementById("target-group-name").textContent=t;document.getElementById("batch-group-modal").style.display="flex"}
-function confirmBatchGroup(){const t=document.getElementById("batch-group-select").value;let d=decryptData(localStorage.getItem("emailData")||[]);d=d.map(i=>selectedItems.includes(i.email)?{...i,group:t}:i);localStorage.setItem("emailData",encryptData(d));closeBatchGroupModal();loadData();showModal("成功","批量修改完成")}
-
-function searchEmails(){searchKeyword=document.getElementById("email-search").value.toLowerCase();currentPage=1;loadData()}
-function clearSearch(){document.getElementById("email-search").value="";searchKeyword="";currentPage=1;loadData()}
-function setPassword(){const p=document.getElementById("password").value;localStorage.setItem("password",encryptData(p))}
-function initDragUpload(){const u=document.getElementById("upload-box");const f=document.getElementById("file-input");const i=document.getElementById("file-info");u.onclick=()=>f.click();f.onchange=()=>f.files[0]&&(i.textContent=`已选：${f.files[0].name}`);u.ondragover=e=>{e.preventDefault();u.classList.add("dragover")};u.ondragleave=()=>u.classList.remove("dragover");u.ondrop=e=>{e.preventDefault();u.classList.remove("dragover");if(e.dataTransfer.files[0]){f.files=e.dataTransfer.files;i.textContent=`已选：${f.files[0].name}`}}}
-function initSearchEnter(){document.getElementById("email-search").onkeypress=e=>e.key==="Enter"&&searchEmails();document.getElementById("mail-search").onkeypress=e=>e.key==="Enter"&&searchMails()}
-
-function viewInbox(idx){openMail(idx,"INBOX")}
-function viewJunk(idx){openMail(idx,"Junk")}
-function openMail(idx,box){const d=decryptData(localStorage.getItem("emailData")||[]);let f=d;if(currentGroupFilter!=="all")f=f.filter(i=>i.group===currentGroupFilter);if(searchKeyword)f=f.filter(i=>i.email.toLowerCase().includes(searchKeyword));const i=f[idx];currentMailPage=1;mailSearchKeyword="";document.getElementById("mail-search").value="";loadMailList(i.refreshToken,i.clientId,i.email,box)}
-function loadMailList(rt,cid,em,box){showLoading();const pwd=decryptData(localStorage.getItem("password")||"");fetch(`/api/mail-all?refresh_token=${rt}&client_id=${cid}&email=${em}&mailbox=${box}&password=${pwd}`).then(r=>{if(!r.ok)throw new Error("获取失败");return r.json()}).then(data=>{mailData=data;originalMailData=[...data];document.querySelectorAll(".content-section").forEach(s=>s.classList.remove("active"));document.getElementById("mail-list").classList.add("active");renderMailTable(data)}).catch(err=>showModal("错误",err.message||"获取邮件失败")).finally(hideLoading)}
-function renderMailTable(d){const b=document.querySelector(".mail-table tbody");b.innerHTML="";document.getElementById("no-data-mail").style.display=d.length?"none":"block";const s=(currentMailPage-1)*mailItemsPerPage,e=s+mailItemsPerPage;d.slice(s,e).forEach((i,idx)=>{const r=document.createElement("tr");r.innerHTML=`<td>${i.send}</td><td>${i.subject}</td><td>${i.date}</td><td><button onclick="viewMail(${s+idx})">查看</button></td>`;b.appendChild(r)});renderMailPagination(d.length)}
-function renderMailPagination(t){const p=document.getElementById("pagination-mail");p.innerHTML="";const total=Math.ceil(t/mailItemsPerPage);for(let i=1;i<=total;i++)p.innerHTML+=`<button ${i===currentMailPage?'class="active"':""} onclick="changeMailPage(${i})">${i}</button>`}
-function changeMailPage(p){currentMailPage=p;const f=mailSearchKeyword?originalMailData.filter(i=>i.send.toLowerCase().includes(mailSearchKeyword)||i.subject.toLowerCase().includes(mailSearchKeyword)):originalMailData;renderMailTable(f)}
-function searchMails(){mailSearchKeyword=document.getElementById("mail-search").value.toLowerCase();currentMailPage=1;const f=originalMailData.filter(i=>i.send.toLowerCase().includes(mailSearchKeyword)||i.subject.toLowerCase().includes(mailSearchKeyword));renderMailTable(f)}
-function clearMailSearch(){document.getElementById("mail-search").value="";mailSearchKeyword="";currentMailPage=1;renderMailTable(originalMailData)}
-function viewMail(idx){const i=mailSearchKeyword?originalMailData.filter(x=>x.send.toLowerCase().includes(mailSearchKeyword)||x.subject.toLowerCase().includes(mailSearchKeyword))[idx]:originalMailData[idx];if(!i)return;document.getElementById("mail-modal-title").textContent=i.subject;document.getElementById("mail-modal-sender").textContent=`发件人：${i.send}`;document.getElementById("mail-modal-subject").textContent=`主题：${i.subject}`;document.getElementById("mail-modal-date").textContent=`日期：${i.date}`;document.getElementById("mail-modal-content").innerHTML=`内容：${i.html||i.text}`;document.getElementById("mail-modal").style.display="flex"}
+<button onclick="viewMail(${start + index})">查看</button>
+</td>
+`;mailTableBody.appendChild(row);});renderMailPagination(data.length);}
+function renderMailPagination(totalItems){const pagination=document.getElementById('pagination-mail');pagination.innerHTML='';const totalPages=Math.ceil(totalItems/mailItemsPerPage);for(let i=1;i<=totalPages;i++){const button=document.createElement('button');button.textContent=i;if(i===currentMailPage){button.classList.add('active');}button.onclick=()=>changeMailPage(i);pagination.appendChild(button);}}
+function changeMailPage(page){currentMailPage=page;const renderData=mailSearchKeyword?originalMailData.filter(item=>item.send.toLowerCase().includes(mailSearchKeyword)||item.subject.toLowerCase().includes(mailSearchKeyword)):originalMailData;renderMailTable(renderData);}
+function searchMails(){mailSearchKeyword=document.getElementById('mail-search').value.trim().toLowerCase();currentMailPage=1;const filteredData=originalMailData.filter(item=>item.send.toLowerCase().includes(mailSearchKeyword)||item.subject.toLowerCase().includes(mailSearchKeyword));renderMailTable(filteredData);}
+function clearMailSearch(){document.getElementById('mail-search').value='';mailSearchKeyword='';currentMailPage=1;renderMailTable(originalMailData);}
+function viewMail(index){const targetData=mailSearchKeyword?originalMailData.filter(item=>item.send.toLowerCase().includes(mailSearchKeyword)||item.subject.toLowerCase().includes(mailSearchKeyword))[index]:originalMailData[index];if(targetData){document.getElementById('mail-modal-title').textContent=targetData.subject;document.getElementById('mail-modal-sender').textContent=`发件人: ${targetData.send}`;document.getElementById('mail-modal-subject').textContent=`主题: ${targetData.subject}`;document.getElementById('mail-modal-date').textContent=`日期: ${targetData.date}`;document.getElementById('mail-modal-content').innerHTML=`内容: ${targetData.html || targetData.text}`;document.getElementById('mail-modal').style.display='flex';}else{console.error('邮件数据不存在:',index);}}
+function closeMailModal(){document.getElementById('mail-modal').style.display='none';}
+function showDeleteConfirm(index){confirmCallback=function(){deleteEmail(index);};document.getElementById('confirm-title').textContent='确认删除';document.getElementById('confirm-message').textContent='确定要删除该邮箱吗？删除后不可恢复';document.getElementById('confirm-modal').style.display='flex';}
+function deleteEmail(index){const encryptedData=localStorage.getItem('emailData')||'';let data=encryptedData?decryptData(encryptedData)||[]:[];let filteredData=data;if(currentGroupFilter!=='all'){filteredData=filteredData.filter(item=>item.group===currentGroupFilter);}if(searchKeyword){filteredData=filteredData.filter(item=>item.email.toLowerCase().includes(searchKeyword)||item.remark.toLowerCase().includes(searchKeyword));}const originalIndex=data.findIndex(item=>item.email===filteredData[index].email);if(originalIndex!==-1){const deletedEmail=data[originalIndex].email;data.splice(originalIndex,1);localStorage.setItem('emailData',encryptData(data));loadData();showModal('删除成功',`邮箱 ${deletedEmail} 已成功删除`);}}
+function importEmails(){const delimiter=document.getElementById('delimiter').value.trim();const fileInput=document.getElementById('file-input');if(!delimiter){showModal('错误','请输入分隔符！');return;}if(fileInput.files.length===0){showModal('错误','请选择文件！');return;}const file=fileInput.files[0];const reader=new FileReader();reader.onload=function(e){showLoading();const content=e.target.result;const lines=content.split('\n').filter(line=>line.trim()!=='');const encryptedData=localStorage.getItem('emailData')||'';let data=encryptedData?decryptData(encryptedData)||[]:[];const existingEmails=new Set(data.map(item=>item.email.toLowerCase()));let successCount=0;let duplicateCount=0;let errorCount=0;lines.forEach(line=>{const fields=line.split(delimiter).map(field=>field.trim());if(fields.length>=4){const email=fields[0].trim();const password=fields[1].trim();let group='默认分组';let remark='';let clientId='';let refreshToken='';if(fields.length>=6){group=fields[2].trim()||'默认分组';remark=fields[3].trim();clientId=fields[4].trim();refreshToken=fields[5].trim();}else{clientId=fields[2].trim();refreshToken=fields[3].trim();}if(email&&password&&clientId&&refreshToken){if(existingEmails.has(email.toLowerCase())){duplicateCount++;return;}const groups=getGroups();if(!groups.includes(group)){groups.push(group);saveGroups(groups);}data.push({email,password,group,remark,clientId,refreshToken});existingEmails.add(email.toLowerCase());successCount++;}else{errorCount++;}}else{errorCount++;}});localStorage.setItem('emailData',encryptData(data));loadData();hideLoading();showModal('导入完成',`成功导入：${successCount} 条<br>重复跳过：${duplicateCount} 条<br>格式错误：${errorCount} 条`);fileInput.value='';document.getElementById('file-info').textContent='';};reader.readAsText(file);}
+function initDragUpload(){const uploadBox=document.getElementById('upload-box');const fileInput=document.getElementById('file-input');const fileInfo=document.getElementById('file-info');uploadBox.addEventListener('click',()=>{fileInput.click();});fileInput.addEventListener('change',()=>{if(fileInput.files.length>0){fileInfo.textContent=`已选择文件：${fileInput.files[0].name}`;}});uploadBox.addEventListener('dragover',(e)=>{e.preventDefault();uploadBox.classList.add('dragover');});uploadBox.addEventListener('dragleave',()=>{uploadBox.classList.remove('dragover');});uploadBox.addEventListener('drop',(e)=>{e.preventDefault();uploadBox.classList.remove('dragover');const files=e.dataTransfer.files;if(files.length>0){fileInput.files=files;fileInfo.textContent=`已选择文件：${files[0].name}`;}});}
+const modal=document.getElementById('modal');const confirmModal=document.getElementById('confirm-modal');const editModal=document.getElementById('edit-modal');const batchGroupModal=document.getElementById('batch-group-modal');
+function showModal(title,message){document.getElementById('modal-title').textContent=title;document.getElementById('modal-message').innerHTML=message;modal.style.display='flex';}
+function showConfirmModal(title,message,callback){confirmCallback=callback;document.getElementById('confirm-title').textContent=title;document.getElementById('confirm-message').textContent=message;confirmModal.style.display='flex';}
+function confirmAction(){if(typeof confirmCallback==='function'){confirmCallback();}closeConfirmModal();}
+function closeModal(){modal.style.display='none';}
+function closeConfirmModal(){confirmModal.style.display='none';confirmCallback=null;}
+function editEmail(index){const encryptedData=localStorage.getItem('emailData')||'';let data=encryptedData?decryptData(encryptedData)||[]:[];let filteredData=data;if(currentGroupFilter!=='all'){filteredData=filteredData.filter(item=>item.group===currentGroupFilter);}if(searchKeyword){filteredData=filteredData.filter(item=>item.email.toLowerCase().includes(searchKeyword)||item.remark.toLowerCase().includes(searchKeyword));}const item=filteredData[index];if(item){document.getElementById('edit-email-original').value=item.email;document.getElementById('edit-email').value=item.email;document.getElementById('edit-password').value=item.password;document.getElementById('edit-client-id').value=item.clientId;document.getElementById('edit-refresh-token').value=item.refreshToken;document.getElementById('edit-remark').value=item.remark||'';updateGroupSelectors();document.getElementById('edit-group').value=item.group||'默认分组';editModal.style.display='flex';}}
+function closeEditModal(){editModal.style.display='none';}
+function saveEdit(){const originalEmail=document.getElementById('edit-email-original').value.trim();const password=document.getElementById('edit-password').value.trim();const clientId=document.getElementById('edit-client-id').value.trim();const refreshToken=document.getElementById('edit-refresh-token').value.trim();const group=document.getElementById('edit-group').value.trim();const remark=document.getElementById('edit-remark').value.trim();if(!password||!clientId||!refreshToken||!group){showModal('错误','密码、Client ID、Refresh Token、分组不能为空！');return;}const encryptedData=localStorage.getItem('emailData')||'';let data=encryptedData?decryptData(encryptedData)||[]:[];const index=data.findIndex(item=>item.email===originalEmail);if(index!==-1){data[index].password=password;data[index].clientId=clientId;data[index].refreshToken=refreshToken;data[index].group=group;data[index].remark=remark;localStorage.setItem('emailData',encryptData(data));loadData();closeEditModal();showModal('编辑成功',`邮箱 ${originalEmail} 信息已更新`);}else{showModal('错误','未找到该邮箱数据！');}}
+function exportData(){const encryptedData=localStorage.getItem('emailData')||'';let data=encryptedData?decryptData(encryptedData)||[]:[];if(data.length===0){showModal('提示','当前没有邮箱数据可导出！');return;}const txtContent=data.map(item=>`${item.email}----${item.password}----${item.group||'默认分组'}----${item.remark||''}----${item.clientId}----${item.refreshToken}`).join('\n');const blob=new Blob([txtContent],{type:'text/plain'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`邮箱数据备份_${new Date().toLocaleDateString().replace(/\//g,'-')}.txt`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showModal('导出成功','数据已导出为TXT文件（格式：邮箱----密码----分组----备注----Client ID----Refresh Token）');}
+function toggleAllPasswords(){passwordVisible=!passwordVisible;const passwordTexts=document.querySelectorAll('.password-text');const toggleBtns=document.querySelectorAll('.password-toggle:not(.edit-modal-content .password-toggle)');passwordTexts.forEach((span,index)=>{const row=span.closest('tr');const email=row.cells[1].textContent;const encryptedData=localStorage.getItem('emailData')||'';let data=encryptedData?decryptData(encryptedData)||[]:[];const item=data.find(item=>item.email===email);if(item){span.textContent=passwordVisible?item.password:'••••••••';}toggleBtns[index].innerHTML=passwordVisible?'<i class="fas fa-eye-slash"></i>':'<i class="fas fa-eye"></i>';});const headerBtn=document.querySelector('th .password-toggle i');headerBtn.className=passwordVisible?'fas fa-eye-slash':'fas fa-eye';}
+function animateValue(id,start,end,duration){let startTimestamp=null;const element=document.getElementById(id);const step=(timestamp)=>{if(!startTimestamp)startTimestamp=timestamp;const progress=Math.min((timestamp-startTimestamp)/duration,1);const value=Math.floor(progress*(end-start)+start);element.textContent=value;if(progress<1){window.requestAnimationFrame(step);}};window.requestAnimationFrame(step);}
+function updateDashboard(data){const countElement=document.getElementById('account-count');const currentValue=parseInt(countElement.textContent)||0;const targetValue=data.length;if(currentValue!==targetValue){animateValue('account-count',currentValue,targetValue,1000);}}
+function searchEmails(){searchKeyword=document.getElementById('email-search').value.trim().toLowerCase();currentPage=1;loadData();}
+function clearSearch(){document.getElementById('email-search').value='';searchKeyword='';currentPage=1;loadData();}
+function setPassword(){const password=document.getElementById('password').value;if(password){localStorage.setItem('password',encryptData(password));}else{localStorage.removeItem('password');}}
+function initSearchEnter(){document.getElementById('email-search').addEventListener('keypress',function(e){if(e.key==='Enter'){searchEmails();}});document.getElementById('mail-search').addEventListener('keypress',function(e){if(e.key==='Enter'){searchMails();}});}
+function initWindowResize(){window.addEventListener('resize',function(){if(window.innerWidth>768){document.getElementById('sidebar').classList.remove('active');}});}
+function initDevInfo(){console.log('小黑邮箱管理系统 - 开发者QQ:113575320');}
+function createGroup(){const newGroupName=document.getElementById('new-group').value.trim();if(!newGroupName){showModal('错误','分组名称不能为空！');return;}const groups=getGroups();if(groups.includes(newGroupName)){showModal('错误','该分组已存在！');return;}groups.push(newGroupName);saveGroups(groups);document.getElementById('new-group').value='';showModal('成功','分组创建成功！');}
+function deleteSelectedGroup(){const selectedGroup=document.getElementById('group-filter').value;if(selectedGroup==='all'||selectedGroup==='默认分组'){showModal('错误','不能删除"全部分组"或"默认分组"！');return;}const groups=getGroups();const groupIndex=groups.indexOf(selectedGroup);if(groupIndex===-1){showModal('错误','选中的分组不存在！');return;}const encryptedData=localStorage.getItem('emailData')||'';const data=encryptedData?decryptData(encryptedData)||[]:[];const hasEmailsInGroup=data.some(item=>item.group===selectedGroup);if(hasEmailsInGroup){showConfirmModal('确认删除分组','该分组下存在邮箱，删除后这些邮箱将自动移到"默认分组"。是否确认删除？',function(){const updatedData=data.map(item=>{if(item.group===selectedGroup){return {...item,group:'默认分组'};}return item;});localStorage.setItem('emailData',encryptData(updatedData));groups.splice(groupIndex,1);saveGroups(groups);currentGroupFilter='all';document.getElementById('group-filter').value='all';loadData();showModal('成功','分组已删除，相关邮箱已移到默认分组！');});}else{showConfirmModal('确认删除分组','确定要删除该分组吗？',function(){groups.splice(groupIndex,1);saveGroups(groups);currentGroupFilter='all';document.getElementById('group-filter').value='all';loadData();showModal('成功','分组已删除！');});}}
+function filterByGroup(){currentGroupFilter=document.getElementById('group-filter').value;currentPage=1;loadData();}
+function showBatchGroupConfirm(){const targetGroup=document.getElementById('batch-group-select').value;if(!targetGroup){showModal('错误','请选择目标分组！');return;}if(selectedItems.length===0){showModal('错误','请选择要修改的邮箱！');return;}document.getElementById('selected-count').textContent=selectedItems.length;document.getElementById('target-group-name').textContent=targetGroup;batchGroupModal.style.display='flex';}
+function confirmBatchGroup(){const targetGroup=document.getElementById('batch-group-select').value;const encryptedData=localStorage.getItem('emailData')||'';let data=encryptedData?decryptData(encryptedData)||[]:[];const updatedData=data.map(item=>{if(selectedItems.includes(item.email)){return {...item,group:targetGroup};}return item;});localStorage.setItem('emailData',encryptData(updatedData));closeBatchGroupModal();loadData();showModal('成功',`已将选中的 ${selectedItems.length} 个邮箱修改到分组：${targetGroup}`);}
+function closeBatchGroupModal(){batchGroupModal.style.display='none';}
 </script>
 </body>
 </html>
