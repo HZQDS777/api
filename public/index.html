@@ -398,6 +398,24 @@ body{
       </div>
     </div>
 
+    <!-- ===================== 邮件列表（修复关键） ===================== -->
+    <div class="module-card" id="mail-card" style="display:none;">
+      <div class="card-title"><i class="fas fa-inbox"></i> 邮件列表</div>
+      <div class="table-wrap">
+        <table class="table" id="mail-table">
+          <thead>
+            <tr>
+              <th>发件人</th>
+              <th>主题</th>
+              <th>日期</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -718,9 +736,10 @@ function toggleNoData(flag){
   document.getElementById('no-data').style.display=flag?'block':'none';
 }
 
-// ===================== 恢复你原始的邮件接口 =========================
+// ===================== 你的原始接口（完全不变） =========================
 function viewInbox(idx){loadMailList(idx,'INBOX');}
 function viewJunk(idx){loadMailList(idx,'Junk');}
+
 function loadMailList(tableIndex,mailbox){
   showLoading();
   let data=decryptData(localStorage.getItem('emailData'))||[];
@@ -729,43 +748,52 @@ function loadMailList(tableIndex,mailbox){
   if(searchKeyword)filtered=filtered.filter(x=>x.email.toLowerCase().includes(searchKeyword)||x.remark.toLowerCase().includes(searchKeyword));
   const item=filtered[tableIndex];
   const pwd=decryptData(localStorage.getItem('password'))||'';
+  
+  // 你的原始接口 100% 还原
   const apiUrl=`/api/mail-all?refresh_token=${item.refreshToken}&client_id=${item.clientId}&email=${item.email}&mailbox=${mailbox}&response_type=json&password=${pwd}`;
   
   fetch(apiUrl).then(res=>{
     if(!res.ok) throw new Error('请求异常');
     return res.json();
   }).then(data=>{
-    mailData=data;originalMailData=[...data];
+    mailData=data||[];
+    originalMailData=[...mailData];
+    document.getElementById('mail-card').style.display='block'; // 显示邮件列表
     renderMailTable(mailData);
   }).catch(err=>{
-    showModal('错误','获取邮件失败，请检查接口是否正常');
+    showModal('错误','获取邮件失败：'+err.message);
   }).finally(()=>hideLoading());
 }
+
+// 渲染邮件列表（修复）
 function renderMailTable(data){
   const tbody=document.querySelector('#mail-table tbody');
-  if(!tbody) return;
   tbody.innerHTML='';
-  const start=(currentMailPage-1)*mailItemsPerPage;
-  const end=start+mailItemsPerPage;
-  const pageData=data.slice(start,end);
-  pageData.forEach((item,idx)=>{
+  if(!data || data.length===0){
+    tbody.innerHTML='<tr><td colspan="4" style="text-align:center;">暂无邮件</td></tr>';
+    return;
+  }
+  data.forEach((item,idx)=>{
     const tr=document.createElement('tr');
     tr.innerHTML=`
-      <td>${item.send}</td>
-      <td>${item.subject}</td>
-      <td>${item.date}</td>
-      <td><button class="btn btn-primary btn-sm" onclick="viewMail(${start+idx})">查看</button></td>
+      <td>${item.send || '未知'}</td>
+      <td>${item.subject || '无主题'}</td>
+      <td>${item.date || ''}</td>
+      <td><button class="btn btn-primary btn-sm" onclick="viewMail(${idx})">查看</button></td>
     `;
     tbody.appendChild(tr);
   });
 }
+
+// 查看邮件内容
 function viewMail(idx){
   const item=originalMailData[idx];
-  document.getElementById('mail-modal-title').innerText=item.subject;
-  document.getElementById('mail-modal-sender').innerText='发件人：'+item.send;
-  document.getElementById('mail-modal-subject').innerText='主题：'+item.subject;
-  document.getElementById('mail-modal-date').innerText='日期：'+item.date;
-  document.getElementById('mail-modal-content').innerHTML=item.html||item.text;
+  if(!item) return;
+  document.getElementById('mail-modal-title').innerText=item.subject||'无主题';
+  document.getElementById('mail-modal-sender').innerText='发件人：'+(item.send||'未知');
+  document.getElementById('mail-modal-subject').innerText='主题：'+(item.subject||'无');
+  document.getElementById('mail-modal-date').innerText='日期：'+(item.date||'未知');
+  document.getElementById('mail-modal-content').innerHTML=item.html||item.text||'无内容';
   document.getElementById('mail-modal').style.display='flex';
 }
 // ====================================================================
@@ -1040,6 +1068,5 @@ function confirmAction(){
   if(confirmCallback)confirmCallback();
 }
 </script>
-
 </body>
 </html>
