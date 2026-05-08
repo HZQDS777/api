@@ -136,133 +136,64 @@ body{
   width:100%;
 }
 .table{
-  width:100%;
-  border-collapse:collapse;
-  min-width:800px;
+  width:100%;border-collapse:collapse;min-width:800px;
 }
 .table th,.table td{
-  padding:10px 8px;
-  text-align:left;
-  font-size:12px;
-  border-bottom:1px solid var(--border);
-  white-space:nowrap;
+  padding:10px 8px;text-align:left;font-size:12px;border-bottom:1px solid var(--border);white-space:nowrap;
 }
 .table th{
-  background:#273444;
-  color:var(--text-secondary);
-  font-weight:500;
+  background:#273444;color:var(--text-secondary);font-weight:500;
 }
 
 .action-bar{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  align-items:center;
-  margin-bottom:12px;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;
 }
 .pagination{
-  display:flex;
-  gap:4px;
-  align-items:center;
-  margin-top:12px;
-  flex-wrap:wrap;
+  display:flex;gap:4px;align-items:center;margin-top:12px;flex-wrap:wrap;
 }
 .pagination button{
-  min-width:30px;
-  height:30px;
-  border-radius:6px;
-  border:1px solid var(--border);
-  background:transparent;
-  color:var(--text-secondary);
-  cursor:pointer;
-  font-size:12px;
+  min-width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;font-size:12px;
 }
 .pagination button.active{
-  background:var(--primary);
-  border-color:var(--primary);
-  color:#fff;
+  background:var(--primary);border-color:var(--primary);color:#fff;
 }
 
 .upload-box{
-  border:2px dashed var(--border);
-  border-radius:8px;
-  padding:20px 10px;
-  text-align:center;
-  cursor:pointer;
+  border:2px dashed var(--border);border-radius:8px;padding:20px 10px;text-align:center;cursor:pointer;
 }
 .upload-box:hover{
-  border-color:var(--primary);
-  background:rgba(22,93,255,0.05);
+  border-color:var(--primary);background:rgba(22,93,255,0.05);
 }
 .upload-box i{font-size:28px;color:var(--primary);margin-bottom:10px;}
 .upload-box p{color:var(--text-secondary);font-size:13px;}
 
-/* 进度条 */
+/* 进度条样式（你原有） */
 .progress-container {
-  width: 100%;
-  height: 6px;
-  background: #334155;
-  border-radius: 3px;
-  margin: 10px 0;
-  display: none;
-  overflow: hidden;
+  width: 100%;height: 6px;background: #334155;border-radius: 3px;margin: 10px 0;display: none;overflow: hidden;
 }
 .progress-bar {
-  height: 100%;
-  background: var(--primary);
-  width: 0%;
-  transition: width 0.3s ease;
+  height: 100%;background: var(--primary);width: 0%;transition: width 0.3s ease;
 }
 .import-status {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: 6px;
-  display: none;
+  font-size: 12px;color: var(--text-secondary);margin-top: 6px;display: none;
 }
 
 .loading-overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.6);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:9999;
+  position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:9999;
 }
 .loading-spinner{
-  width:40px;height:40px;
-  border:4px solid #334155;
-  border-top-color:var(--primary);
-  border-radius:50%;
-  animation:spin 1s linear infinite;
+  width:40px;height:40px;border:4px solid #334155;border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg);}}
 
 .modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.7);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:9999;
-  padding:10px;
+  position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:9999;padding:10px;
 }
 .modal-content{
-  background:var(--card-bg);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:18px 16px;
-  width:100%;
-  max-width:380px;
-  max-height:90vh;
-  overflow-y:auto;
+  background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:18px 16px;width:100%;max-width:380px;max-height:90vh;overflow-y:auto;
 }
 .modal-btn-group{
-  display:flex;
-  gap:8px;
-  justify-content:flex-end;
-  margin-top:16px;
+  display:flex;gap:8px;justify-content:flex-end;margin-top:16px;
 }
 
 .no-data{text-align:center;padding:25px 10px;color:var(--text-secondary);display:none;}
@@ -271,10 +202,7 @@ body{
 .remark-cell{max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
 #mail-modal .modal-content {
-  width:100%;
-  max-width:95%;
-  max-height:85vh;
-  overflow-y:auto;
+  width:100%;max-width:95%;max-height:85vh;overflow-y:auto;
 }
 
 #edit-modal .modal-content {
@@ -326,7 +254,6 @@ body{
         <input type="file" id="file-input" accept=".txt" style="display:none;">
       </div>
 
-      <!-- 进度条 -->
       <div class="progress-container" id="progress-container">
         <div class="progress-bar" id="progress-bar"></div>
       </div>
@@ -398,7 +325,6 @@ body{
       </div>
     </div>
 
-    <!-- ===================== 邮件列表（修复关键） ===================== -->
     <div class="module-card" id="mail-card" style="display:none;">
       <div class="card-title"><i class="fas fa-inbox"></i> 邮件列表</div>
       <div class="table-wrap">
@@ -736,7 +662,6 @@ function toggleNoData(flag){
   document.getElementById('no-data').style.display=flag?'block':'none';
 }
 
-// ===================== 你的原始接口（完全不变） =========================
 function viewInbox(idx){loadMailList(idx,'INBOX');}
 function viewJunk(idx){loadMailList(idx,'Junk');}
 
@@ -748,8 +673,6 @@ function loadMailList(tableIndex,mailbox){
   if(searchKeyword)filtered=filtered.filter(x=>x.email.toLowerCase().includes(searchKeyword)||x.remark.toLowerCase().includes(searchKeyword));
   const item=filtered[tableIndex];
   const pwd=decryptData(localStorage.getItem('password'))||'';
-  
-  // 你的原始接口 100% 还原
   const apiUrl=`/api/mail-all?refresh_token=${item.refreshToken}&client_id=${item.clientId}&email=${item.email}&mailbox=${mailbox}&response_type=json&password=${pwd}`;
   
   fetch(apiUrl).then(res=>{
@@ -758,14 +681,13 @@ function loadMailList(tableIndex,mailbox){
   }).then(data=>{
     mailData=data||[];
     originalMailData=[...mailData];
-    document.getElementById('mail-card').style.display='block'; // 显示邮件列表
+    document.getElementById('mail-card').style.display='block';
     renderMailTable(mailData);
   }).catch(err=>{
     showModal('错误','获取邮件失败：'+err.message);
   }).finally(()=>hideLoading());
 }
 
-// 渲染邮件列表（修复）
 function renderMailTable(data){
   const tbody=document.querySelector('#mail-table tbody');
   tbody.innerHTML='';
@@ -785,7 +707,6 @@ function renderMailTable(data){
   });
 }
 
-// 查看邮件内容
 function viewMail(idx){
   const item=originalMailData[idx];
   if(!item) return;
@@ -796,7 +717,6 @@ function viewMail(idx){
   document.getElementById('mail-modal-content').innerHTML=item.html||item.text||'无内容';
   document.getElementById('mail-modal').style.display='flex';
 }
-// ====================================================================
 
 function closeMailModal(){
   document.getElementById('mail-modal').style.display='none';
@@ -839,8 +759,8 @@ function initDragUpload(){
   };
 }
 
-// ===================== 大量导入不卡死 + 进度条 ========================
-function importEmails() {
+// ===================== 【修复】大量导入邮箱永不卡死 + 进度条 ========================
+async function importEmails() {
   const delimiter = document.getElementById('delimiter').value.trim();
   const file = document.getElementById('file-input');
   if (!delimiter) return showModal('错误', '请输入分隔符');
@@ -853,7 +773,6 @@ function importEmails() {
   progressContainer.style.display = 'block';
   importStatus.style.display = 'block';
   progressBar.style.width = '0%';
-  showLoading();
 
   const f = file.files[0];
   const reader = new FileReader();
@@ -863,40 +782,55 @@ function importEmails() {
     const lines = e.target.result.split('\n').filter(x => x.trim());
     const totalLines = lines.length;
     let data = decryptData(localStorage.getItem('emailData')) || [];
-    const exist = new Set(data.map(x => x.email.toLowerCase()));
+    const existEmails = new Set(data.map(x => x.email.toLowerCase().trim()));
 
-    let ok = 0, dup = 0, err = 0;
-    const BATCH_SIZE = 100;
+    let ok = 0, dup = 0, errLine = 0;
+    const BATCH_SIZE = 30;
 
     for (let i = 0; i < totalLines; i += BATCH_SIZE) {
       const batch = lines.slice(i, i + BATCH_SIZE);
 
       batch.forEach(line => {
-        const arr = line.split(delimiter).map(x => x.trim());
-        if (arr.length >= 4) {
-          const email = arr[0], pwd = arr[1], cid = arr[2], rt = arr[3];
-          if (!email || !pwd || !cid || !rt) { err++; return; }
-          if (exist.has(email.toLowerCase())) { dup++; return; }
-          data.push({ email, password: pwd, group: '默认分组', remark: '', clientId: cid, refreshToken: rt });
-          exist.add(email.toLowerCase());
+        const parts = line.split(delimiter).map(x => x.trim());
+        if (parts.length >= 4) {
+          let email = parts[0];
+          const pwd = parts[1];
+          const cid = parts[2];
+          const rt = parts[3];
+
+          if (!email || !pwd || !cid || !rt) { errLine++; return; }
+
+          const emailLower = email.toLowerCase();
+          if (existEmails.has(emailLower)) { dup++; return; }
+
+          data.push({
+            email: email,
+            password: pwd,
+            clientId: cid,
+            refreshToken: rt,
+            group: '默认分组',
+            remark: ''
+          });
+          existEmails.add(emailLower);
           ok++;
         } else {
-          err++;
+          errLine++;
         }
       });
 
-      const percent = ((i + BATCH_SIZE) / totalLines) * 100;
-      progressBar.style.width = Math.min(percent, 100) + '%';
-      importStatus.innerText = `导入中：${Math.min(i + BATCH_SIZE, totalLines)} / ${totalLines}  成功：${ok}`;
-      await new Promise(r => setTimeout(r, 10));
+      const current = Math.min(i + BATCH_SIZE, totalLines);
+      const percent = (current / totalLines) * 100;
+      progressBar.style.width = percent + '%';
+      importStatus.innerText = `导入中：${current}/${totalLines} 成功：${ok} 重复：${dup}`;
+      await new Promise(r => setTimeout(r, 5));
     }
 
     localStorage.setItem('emailData', encryptData(data));
     loadData();
-    hideLoading();
-    progressBar.style.width = '100%';
-    importStatus.innerText = `导入完成！成功：${ok} 重复：${dup} 错误：${err}`;
     
+    progressBar.style.width = '100%';
+    importStatus.innerText = `✅ 导入完成！成功：${ok} 重复：${dup} 错误：${errLine}`;
+
     setTimeout(() => {
       progressContainer.style.display = 'none';
       importStatus.style.display = 'none';
@@ -904,10 +838,9 @@ function importEmails() {
 
     file.value = '';
     document.getElementById('file-info').innerText = '';
-    showModal('导入完成', `成功：${ok} 条<br>重复：${dup} 条<br>格式错误：${err} 条`);
+    showModal('导入成功', `成功：${ok} 条<br>重复：${dup} 条<br>错误：${errLine} 条`);
   };
 }
-// ====================================================================
 
 function exportData(){
   let data=decryptData(localStorage.getItem('emailData'))||[];
