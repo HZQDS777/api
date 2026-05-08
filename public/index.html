@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>邮箱管理系统</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js">
-</script>
+<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 <style>
 :root{
   --primary:#165DFF;
@@ -254,7 +253,6 @@ body{
       </div>
     </div>
 
-    <!-- 顶部统计卡片 -->
     <div class="card-row">
       <div class="stat-card">
         <div class="top"><i class="fas fa-envelope"></i></div>
@@ -268,7 +266,6 @@ body{
       </div>
     </div>
 
-    <!-- 导入模块 -->
     <div class="module-card">
       <div class="card-title"><i class="fas fa-upload"></i> 导入邮箱数据</div>
       <div class="upload-box" id="upload-box">
@@ -280,14 +277,13 @@ body{
       <div class="action-bar" style="margin-top:16px;">
         <input type="password" class="form-input" id="password" placeholder="验证密码" oninput="setPassword()">
         <input type="text" class="form-input" id="delimiter" placeholder="分隔符 例如 ----">
-        <button class="btn btn-primary" onclick="importEmails()"><i class="fas fa-import"></i> 导入数据</button>
+        <button class="btn btn-primary" onclick="importEmails()"><i class="fas fa-file-import"></i> 导入数据</button>
         <button class="btn btn-success" onclick="exportData()"><i class="fas fa-download"></i> 导出TXT</button>
         <button class="btn btn-danger" onclick="batchDelete()"><i class="fas fa-trash"></i> 批量删除</button>
         <button class="btn btn-danger btn-sm" onclick="deleteAllEmails()"><i class="fas fa-trash-alt"></i> 清空全部</button>
       </div>
     </div>
 
-    <!-- 分组管理 -->
     <div class="module-card">
       <div class="card-title"><i class="fas fa-layer-group"></i> 分组管理</div>
       <div class="action-bar">
@@ -305,7 +301,6 @@ body{
       </div>
     </div>
 
-    <!-- 搜索列表 -->
     <div class="module-card">
       <div class="card-title"><i class="fas fa-search"></i> 搜索筛选</div>
       <div class="action-bar">
@@ -348,7 +343,6 @@ body{
   </main>
 </div>
 
-<!-- 弹窗 -->
 <div class="modal" id="modal">
   <div class="modal-content">
     <h3 id="modal-title">提示</h3>
@@ -450,7 +444,7 @@ function getGroups(){
     try{
       const decrypted=CryptoJS.AES.decrypt(encryptedData,ENCRYPT_KEY).toString(CryptoJS.enc.Utf8);
       return decrypted&&Array.isArray(JSON.parse(decrypted))?JSON.parse(decrypted):['默认分组'];
-    }catch(e){return['默认分组'];)
+    }catch(e){return['默认分组'];}
   }
   return['默认分组'];
 }
@@ -622,15 +616,15 @@ function renderPagination(total){
   const totalPage = Math.ceil(total / itemsPerPage);
   if(totalPage === 0) return;
 
-  let startPage = Math.max(1, currentPage - 5);
-  let endPage = Math.min(totalPage, currentPage + 4);
-
-  if(startPage > 1){
+  if(currentPage > 1){
     const prev = document.createElement('button');
     prev.innerText = '上一页';
     prev.onclick = () => changePage(currentPage - 1);
     pag.appendChild(prev);
   }
+
+  let startPage = Math.max(1, currentPage - 5);
+  let endPage = Math.min(totalPage, currentPage + 4);
 
   for(let i = startPage; i <= endPage; i++){
     const btn = document.createElement('button');
@@ -666,60 +660,13 @@ function toggleNoData(flag){
   document.getElementById('no-data').style.display=flag?'block':'none';
 }
 
-function viewInbox(idx){loadMailList(idx,'INBOX');}
-function viewJunk(idx){loadMailList(idx,'Junk');}
-function loadMailList(tableIndex,mailbox){
-  showLoading();
-  let data=decryptData(localStorage.getItem('emailData'))||[];
-  let filtered=data;
-  if(currentGroupFilter!=='all')filtered=filtered.filter(x=>x.group===currentGroupFilter);
-  if(searchKeyword)filtered=filtered.filter(x=>x.email.toLowerCase().includes(searchKeyword)||x.remark.toLowerCase().includes(searchKeyword));
-  const item=filtered[tableIndex];
-  const pwd=decryptData(localStorage.getItem('password'))||'';
-  const apiUrl=`/api/mail-all?refresh_token=${item.refreshToken}&client_id=${item.clientId}&email=${item.email}&mailbox=${mailbox}&response_type=json&password=${pwd}`;
-  
-  fetch(apiUrl).then(res=>{
-    if(!res.ok) throw new Error('请求异常');
-    return res.json();
-  }).then(data=>{
-    mailData=data;originalMailData=[...data];
-    renderMailTable(mailData);
-  }).catch(err=>{
-    showModal('错误','获取邮件失败，请检查接口是否正常');
-  }).finally(()=>hideLoading());
+function viewInbox(idx){
+  showModal('提示','本地版仅支持管理功能，邮件查看需对接后端接口');
+}
+function viewJunk(idx){
+  showModal('提示','本地版仅支持管理功能，邮件查看需对接后端接口');
 }
 
-function renderMailTable(data){
-  const tbody=document.querySelector('#mail-table tbody');
-  tbody.innerHTML='';
-  const start=(currentMailPage-1)*mailItemsPerPage;
-  const end=start+mailItemsPerPage;
-  const pageData=data.slice(start,end);
-  pageData.forEach((item,idx)=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>${item.send}</td>
-      <td>${item.subject}</td>
-      <td>${item.date}</td>
-      <td><button class="btn btn-primary btn-sm" onclick="viewMail(${start+idx})">查看</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function changeMailPage(page){
-  currentMailPage=page;
-  renderMailTable(originalMailData);
-}
-function viewMail(idx){
-  const item=originalMailData[idx];
-  document.getElementById('mail-modal-title').innerText=item.subject;
-  document.getElementById('mail-modal-sender').innerText='发件人：'+item.send;
-  document.getElementById('mail-modal-subject').innerText='主题：'+item.subject;
-  document.getElementById('mail-modal-date').innerText='日期：'+item.date;
-  document.getElementById('mail-modal-content').innerHTML=item.html||item.text;
-  document.getElementById('mail-modal').style.display='flex';
-}
 function closeMailModal(){
   document.getElementById('mail-modal').style.display='none';
 }
@@ -812,10 +759,17 @@ function exportData(){
 function toggleAllPasswords(){
   passwordVisible=!passwordVisible;
   document.querySelectorAll('.password-text').forEach((span,i)=>{
-    const pwd=span.closest('tr').querySelector('.password-toggle').getAttribute('onclick').split("'")[1];
+    const row = span.closest('tr');
+    if(!row) return;
+    const toggleBtn = row.querySelector('.password-toggle');
+    if(!toggleBtn) return;
+    
+    const pwdMatch = toggleBtn.getAttribute('onclick').match(/'([^']+)'/);
+    const pwd = pwdMatch ? pwdMatch[1] : '';
+    
     span.textContent=passwordVisible?pwd:'••••••••';
-    const icon=span.closest('tr').querySelector('.password-toggle i');
-    icon.className=passwordVisible?'fas fa-eye-slash':'fas fa-eye';
+    const icon=toggleBtn.querySelector('i');
+    if(icon) icon.className=passwordVisible?'fas fa-eye-slash':'fas fa-eye';
   });
 }
 
