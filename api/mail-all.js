@@ -1,105 +1,234 @@
 const Imap = require('node-imap');
 const simpleParser = require("mailparser").simpleParser;
-const { generateAuthString, get_access_token, graph_api } = require('./utils');
 
+function generateEmailsHtml(emailsData) {
+  const escapeHtml = (str) => str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
+  const renderEmailItem = (email, index) => {
+    const { send, subject, text, html: emailHtml, date } = email;
+    const escapedText = escapeHtml(text || '无内容');
+    const escapedHtml = emailHtml || `<p>${escapedText.replace(/\n/g, '<br>')}</p>`;
+    const formattedDate = new Date(date).toLocaleString() || '未知日期';
+
+    return `
+      <div class="email-item" id="email-${index}">
+        <div class="email-header" onclick="toggleEmailContent(${index})">
+          <h3 class="email-subject">${escapeHtml(subject || '无主题')}</h3>
+          <div class="email-meta">
+            <span>发件人：${escapeHtml(send || '未知')}</span>
+            <span>日期：${formattedDate}</span>
+            <span class="toggle-btn">${index === 0 ? '收起' : '展开'}</span>
+          </div>
+        </div>
+        <div class="email-content" id="content-${index}" style="${index === 0 ? 'display:block' : 'display:none'}">
+          ${escapedHtml || `<p>${escapedText}</p>`}
+        </div>
+      </div>
+    `;
+  };
+
+  const emailsHtml = emailsData.map((email, index) => renderEmailItem(email, index)).join('');
+
+  return `
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>邮件列表 - 共${emailsData.length}封</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; background: #f8f9fa; padding: 20px; }
+          .page-title { text-align: center; color: #2d3748; margin-bottom: 30px; font-size: 1.8em; }
+          .email-list { max-width: 1000px; margin: 0 auto; gap: 15px; display: flex; flex-direction: column; }
+          .email-item { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
+          .email-header { padding: 15px 20px; background: #f5fafe; cursor: pointer; border-bottom: 1px solid #eee; }
+          .email-subject { color: #2d3748; margin-bottom: 8px; font-size: 1.1em; }
+          .email-meta { display: flex; gap: 20px; color: #4a5568; font-size: 0.9em; }
+          .toggle-btn { margin-left: auto; color: #4299e1; font-weight: 500; }
+          .email-content { padding: 20px; color: #1a202c; line-height: 1.8; }
+          .email-content p { margin-bottom: 10px; }
+          .email-content img { max-width: 100%; height: auto; }
+          @media (max-width: 768px) {
+            .email-meta { flex-direction: column; gap: 5px; }
+            .toggle-btn { margin-left: 0; margin-top: 5px; }
+          }
+        </style>
+        <script>
+          function toggleEmailContent(index) {
+            const content = document.getElementById(\`content-\${index}\`);
+            const btn = document.querySelector(\`#email-\${index} .toggle-btn\`);
+            if (content.style.display === 'none') {
+              content.style.display = 'block';
+              btn.textContent = '收起';
+            } else {
+              content.style.display = 'none';
+              btn.textContent = '展开';
+            }
+          }
+        </script>
+      </head>
+      <body>
+        <h1 class="page-title">邮件列表（共${emailsData.length}封）</h1>
+        <div class="email-list">
+          ${emailsHtml || '<div style="text-align:center; padding:30px; color:#718096;">未获取到邮件</div>'}
+        </div>
+      </body>
+    </html>
+  `;
+}
+
+// IMAP 获取Token 专用Scope
+async function get_imap_token(refresh_token, client_id) {
+    const response = await fetch('https://login.microsoftonline.com/consumers/oauth2/v2.0/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+            'client_id': client_id,
+            'grant_type': 'refresh_token',
+            'refresh_token': refresh_token,
+            'scope': 'https://outlook.office.com/IMAP.AccessAsUser.All offline_access'
+        }).toString()
+    });
+
+    if (!response.ok) throw new Error('IMAP token get fail');
+    const data = await response.json();
+    return data.access_token;
+}
+
+const generateAuthString = (user, accessToken) => {
+    const authString = `user=${user}\x01auth=Bearer ${accessToken}\x01\x01`;
+    return Buffer.from(authString).toString('base64');
+}
+
+// 1. 新GR：User.Read Mail.Read offline_access
+async function get_new_gr_token(refresh_token, client_id) {
+    const response = await fetch('https://login.microsoftonline.com/consumers/oauth2/v2.0/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+            'client_id': client_id,
+            'grant_type': 'refresh_token',
+            'refresh_token': refresh_token,
+            'scope': 'User.Read Mail.Read offline_access'
+        }).toString()
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.access_token ? data.access_token : null;
+}
+
+// 2. 老GR：https://graph.microsoft.com/.default
+async function get_old_gr_token(refresh_token, client_id) {
+    const response = await fetch('https://login.microsoftonline.com/consumers/oauth2/v2.0/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+            'client_id': client_id,
+            'grant_type': 'refresh_token',
+            'refresh_token': refresh_token,
+            'scope': 'https://graph.microsoft.com/.default'
+        }).toString()
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.access_token ? data.access_token : null;
+}
+
+// Graph 拉取邮件
 async function get_emails(access_token, mailbox) {
-
-    if (!access_token) {
-        console.log("Failed to obtain access token'");
-        return;
-    }
-
+    if (!access_token) return null;
     try {
-        // 添加$select参数以获取internetMessageId字段
-        const response = await fetch(`https://graph.microsoft.com/v1.0/me/mailFolders/${mailbox}/messages?$top=10000&$select=id,from,subject,bodyPreview,body,createdDateTime,internetMessageId`, {
+        const response = await fetch(`https://graph.microsoft.com/v1.0/me/mailFolders/${mailbox}/messages?$top=10000`, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
                 "Authorization": `Bearer ${access_token}`
             },
         });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            return
-        }
-
+        if (!response.ok) return null;
         const responseData = await response.json();
-
         const emails = responseData.value;
+        if (!emails) return null;
 
-        const response_emails = emails.map(item => {
-            return {
-                id: item['id'],
-                messageId: item['internetMessageId'] || item['id'], // 完整的Message-ID
-                send: item['from']['emailAddress']['address'],
-                subject: item['subject'],
-                text: item['bodyPreview'],
-                html: item['body']['content'],
-                date: item['createdDateTime'],
-                mode: 'graph' // 标识使用的模式
-            }
-        })
-
-        return response_emails
-
+        return emails.map(item => ({
+            send: item.from?.emailAddress?.address || '未知',
+            subject: item.subject || '无主题',
+            text: item.bodyPreview || '',
+            html: item.body?.content || '',
+            date: item.createdDateTime,
+        }));
     } catch (error) {
-        console.error('Error fetching emails:', error);
-        return;
+        return null;
     }
-
 }
 
 module.exports = async (req, res) => {
-
     const { password } = req.method === 'GET' ? req.query : req.body;
-
     const expectedPassword = process.env.PASSWORD;
 
     if (password !== expectedPassword && expectedPassword) {
         return res.status(401).json({
-            error: 'Authentication failed. Please provide valid credentials or contact administrator for access. Refer to API documentation for deployment details.'
+            error: 'Authentication failed'
         });
     }
 
-    // 根据请求方法从 query 或 body 中获取参数
-    let { refresh_token, client_id, email, mailbox } = req.method === 'GET' ? req.query : req.body;
+    const params = req.method === 'GET' ? req.query : req.body;
+    let { refresh_token, client_id, email, mailbox, response_type = 'json' } = params;
 
-    // 检查是否缺少必要的参数
     if (!refresh_token || !client_id || !email || !mailbox) {
-        return res.status(400).json({ error: 'Missing required parameters: refresh_token, client_id, email, or mailbox' });
+        return res.status(400).json({ error: 'Missing required parameters' });
+    }
+    if (!['json', 'html'].includes(response_type)) {
+        return res.status(400).json({ error: 'Invalid response_type' });
     }
 
+    // 文件夹兼容
+    let mb = mailbox;
+    if (mb === 'INBOX') mb = 'inbox';
+    if (mb === 'Junk') mb = 'junkemail';
+
     try {
-
-        console.log("判断是否graph_api");
-        const graph_api_result = await graph_api(refresh_token, client_id)
-
-        if (graph_api_result.status) {
-
-            console.log("是graph_api");
-
-            if (mailbox != "INBOX" && mailbox != "Junk") {
-                mailbox = "inbox";
+        // 第一步：尝试 新GR
+        let token = await get_new_gr_token(refresh_token, client_id);
+        if (token) {
+            let list = await get_emails(token, mb);
+            if (list) {
+                if (response_type === 'html') {
+                    return res.send(generateEmailsHtml(list));
+                } else {
+                    return res.json(list);
+                }
             }
-
-            if (mailbox == 'INBOX') {
-                mailbox = 'inbox';
-            }
-
-            if (mailbox == 'Junk') {
-                mailbox = 'junkemail';
-            }
-
-            const result = await get_emails(graph_api_result.access_token, mailbox);
-
-            res.status(200).json(result);
-
-            return
         }
 
-        const access_token = await get_access_token(refresh_token, client_id);
-        const authString = generateAuthString(email, access_token);
+        // 第二步：尝试 老GR
+        token = await get_old_gr_token(refresh_token, client_id);
+        if (token) {
+            let list = await get_emails(token, mb);
+            if (list) {
+                if (response_type === 'html') {
+                    return res.send(generateEmailsHtml(list));
+                } else {
+                    return res.json(list);
+                }
+            }
+        }
+
+        // 第三步：全部失败 走 IMAP 兜底
+        const imapToken = await get_imap_token(refresh_token, client_id);
+        const authString = generateAuthString(email, imapToken);
+        const emailList = [];
 
         const imap = new Imap({
             user: email,
@@ -107,63 +236,35 @@ module.exports = async (req, res) => {
             host: 'outlook.office365.com',
             port: 993,
             tls: true,
-            tlsOptions: {
-                rejectUnauthorized: false
-            }
+            tlsOptions: { rejectUnauthorized: false }
         });
 
-        const emailList = [];
         imap.once("ready", async () => {
             try {
-                // 动态打开指定的邮箱（如 INBOX 或 Junk）
                 await new Promise((resolve, reject) => {
-                    imap.openBox(mailbox, true, (err, box) => {
-                        if (err) return reject(err);
-                        resolve(box);
-                    });
+                    imap.openBox(mailbox, true, (err) => err ? reject(err) : resolve());
                 });
-
                 const results = await new Promise((resolve, reject) => {
-                    imap.search(["ALL"], (err, results) => {
-                        if (err) return reject(err);
-                        resolve(results);
-                    });
+                    imap.search(["ALL"], (err, r) => err ? reject(err) : resolve(r));
                 });
 
-                // 检查是否有邮件
-                if (!results || results.length === 0) {
-                    console.log(`${mailbox} 中没有邮件`);
-                    imap.end();
-                    return;
-                }
-
-                console.log(`${mailbox} 中找到 ${results.length} 封邮件`);
                 const f = imap.fetch(results, { bodies: "" });
-
-                f.on("message", (msg, seqno) => {
-                    msg.on("body", (stream, info) => {
+                f.on("message", (msg) => {
+                    msg.on("body", (stream) => {
                         simpleParser(stream, (err, mail) => {
-                            if (err) throw err;
-                            const data = {
-                                id: `imap_${seqno}_${Date.now()}`, // 生成唯一ID
-                                messageId: mail.messageId || mail.headers.get('message-id') || `imap_${seqno}_${Date.now()}`, // 完整的Message-ID
-                                send: mail.from.text,
-                                subject: mail.subject,
-                                text: mail.text,
-                                html: mail.html,
-                                date: mail.date,
-                                mode: 'imap', // 标识使用的模式
-                                _imapSeqno: seqno // 保存IMAP序列号用于删除操作
-                            };
-
-                            emailList.push(data);
+                            if (!err) {
+                                emailList.push({
+                                    send: mail.from.text,
+                                    subject: mail.subject,
+                                    text: mail.text,
+                                    html: mail.html,
+                                    date: mail.date,
+                                });
+                            }
                         });
                     });
                 });
-
-                f.once("end", () => {
-                    imap.end();
-                });
+                f.once("end", () => imap.end());
             } catch (err) {
                 imap.end();
                 res.status(500).json({ error: err.message });
@@ -171,19 +272,20 @@ module.exports = async (req, res) => {
         });
 
         imap.once('error', (err) => {
-            console.error('IMAP error:', err);
             res.status(500).json({ error: err.message });
         });
 
         imap.once('end', () => {
-            res.status(200).json(emailList);
-            console.log('IMAP connection ended');
+            if (response_type === 'html') {
+                res.send(generateEmailsHtml(emailList));
+            } else {
+                res.json(emailList);
+            }
         });
 
         imap.connect();
 
     } catch (error) {
-        console.error('Error:', error);
         res.status(500).json({ error: error.message });
     }
 };
