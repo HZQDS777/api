@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>微软令牌邮箱管理系统|</title>
+<title>邮箱管理系统</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js">
+</script>
 <style>
 :root{
   --primary:#165DFF;
@@ -22,79 +23,20 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{
-  font-family:"Inter","Microsoft YaHei",sans-serif;
+  font-family:"Microsoft YaHei",sans-serif;
   background-color:var(--dark-bg);
   color:var(--text-primary);
-  min-height:100vh;
 }
 .layout{display:flex;min-height:100vh;}
+.sidebar{display:none;}
+.main{width:100%;padding:24px;}
 
-.sidebar{
-  width:260px;
-  background-color:var(--sidebar-bg);
-  border-right:1px solid var(--border);
-  padding:24px 0;
-  position:fixed;
-  height:100vh;
-  transition:all 0.3s ease;
-  z-index:99;
-}
-.sidebar-logo{
-  text-align:center;
-  padding:0 20px 24px;
-  border-bottom:1px solid var(--border);
-  margin-bottom:20px;
-}
-.sidebar-logo h2{
-  font-size:18px;
-  color:var(--primary);
-  margin-bottom:6px;
-}
-.sidebar-logo p{
-  font-size:12px;
-  color:var(--text-secondary);
-}
-.sidebar-menu{list-style:none;padding:0 12px;}
-.sidebar-menu li{margin:4px 0;}
-.sidebar-menu li a{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:12px 16px;
-  border-radius:8px;
-  color:var(--text-secondary);
-  text-decoration:none;
-  transition:all 0.25s ease;
-  font-size:14px;
-}
-.sidebar-menu li a:hover{
-  background-color:rgba(22,93,255,0.1);
-  color:var(--primary);
-}
-.sidebar-menu li a.active{
-  background-color:var(--primary);
-  color:#fff;
-  box-shadow:0 4px 12px rgba(22,93,255,0.3);
-}
-.sidebar-menu li a i{font-size:16px;width:20px;text-align:center;}
-
-.main{
-  flex:1;
-  margin-left:260px;
-  padding:24px;
-}
 .page-header{
   margin-bottom:24px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:16px;
 }
 .page-title h1{
   font-size:24px;
   font-weight:600;
-  color:var(--text-primary);
 }
 .page-title p{
   font-size:13px;
@@ -104,7 +46,7 @@ body{
 
 .card-row{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
   gap:20px;
   margin-bottom:24px;
 }
@@ -113,11 +55,6 @@ body{
   border:1px solid var(--border);
   border-radius:12px;
   padding:20px;
-  transition:transform 0.25s ease,box-shadow 0.25s ease;
-}
-.stat-card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 8px 24px rgba(0,0,0,0.2);
 }
 .stat-card .top{
   display:flex;
@@ -143,7 +80,6 @@ body{
 .stat-card p.num{
   font-size:28px;
   font-weight:700;
-  color:var(--text-primary);
   margin-top:4px;
 }
 
@@ -170,13 +106,11 @@ body{
   border:none;
   font-size:14px;
   cursor:pointer;
-  transition:all 0.25s ease;
   display:inline-flex;
   align-items:center;
   gap:6px;
 }
 .btn-primary{background:var(--primary);color:#fff;}
-.btn-primary:hover{background:#0E42D2;}
 .btn-success{background:var(--success);color:#fff;}
 .btn-warning{background:var(--warning);color:#fff;}
 .btn-danger{background:var(--danger);color:#fff;}
@@ -192,9 +126,7 @@ body{
   color:var(--text-primary);
   font-size:14px;
   outline:none;
-  transition:border 0.25s ease;
 }
-.form-input:focus{border-color:var(--primary);}
 
 .table-wrap{overflow-x:auto;}
 .table{
@@ -211,9 +143,8 @@ body{
 .table th{
   background:#273444;
   color:var(--text-secondary);
-  font-weight:50px;
+  font-weight:500;
 }
-.table tr:hover{background:rgba(255,255,255,0.03);}
 
 .action-bar{
   display:flex;
@@ -237,7 +168,6 @@ body{
   background:transparent;
   color:var(--text-secondary);
   cursor:pointer;
-  transition:all 0.25s ease;
 }
 .pagination button.active{
   background:var(--primary);
@@ -251,9 +181,8 @@ body{
   padding:30px;
   text-align:center;
   cursor:pointer;
-  transition:all 0.25s ease;
 }
-.upload-box:hover,.upload-box.dragover{
+.upload-box:hover{
   border-color:var(--primary);
   background:rgba(22,93,255,0.05);
 }
@@ -295,234 +224,131 @@ body{
   width:90%;
   max-width:420px;
 }
-.modal-content h3{margin-bottom:12px;color:var(--text-primary);}
-.modal-content p{color:var(--text-secondary);margin-bottom:20px;}
-.modal-btn-group{display:flex;gap:10px;justify-content:flex-end;}
+.modal-btn-group{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
 
-.content-section{display:none;}
-.content-section.active{display:block;}
-
-.menu-toggle{
-  display:none;
-  position:fixed;
-  top:16px;
-  left:16px;
-  z-index:1000;
-  background:var(--primary);
-  color:#fff;
-  width:40px;
-  height:40px;
-  border-radius:8px;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-}
-@media (max-width:768px){
-  .sidebar{transform:translateX(-100%);}
-  .sidebar.active{transform:translateX(0);}
-  .main{margin-left:0;}
-  .menu-toggle{display:flex;}
-  .card-row{grid-template-columns:1fr;}
-}
-
-::-webkit-scrollbar{width:6px;height:6px;}
-::-webkit-scrollbar-thumb{background:#334155;border-radius:3px;}
-::-webkit-scrollbar-track{background:transparent;}
-
+.no-data{text-align:center;padding:30px;color:var(--text-secondary);display:none;}
 .password-text{font-family:monospace;}
 .refresh-token{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .remark-cell{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
-#mail-modal {padding:12px;}
 #mail-modal .modal-content {
   width:95%;
   max-width:900px;
   max-height:85vh;
-  overflow-y:auto !important;
-  -webkit-overflow-scrolling:touch;
-}
-#mail-modal-content {
-  padding:10px 0;
-  line-height:1.6;
-}
-@media (max-width:768px){
-  #mail-modal .modal-content {
-    width:95%;
-    max-height:88vh;
-  }
+  overflow-y:auto;
 }
 </style>
 </head>
 <body>
-
-<div class="menu-toggle" id="menu-toggle">
-  <i class="fas fa-bars"></i>
-</div>
 
 <div class="loading-overlay" id="loading-overlay">
   <div class="loading-spinner"></div>
 </div>
 
 <div class="layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <h2>微软邮箱取件管理系统</h2>
-      <p>技术支持小黑</p>
-    </div>
-    <ul class="sidebar-menu">
-      <li><a href="#" data-target="dashboard" class="active"><i class="fas fa-chart-line"></i> 邮箱总数</a></li>
-      <li><a href="#" data-target="emails"><i class="fas fa-envelope"></i> 邮箱取件管理</a></li>
-    </ul>
-  </aside>
-
   <main class="main">
-    <div id="dashboard" class="content-section active">
-      <div class="page-header">
-        <div class="page-title">
-          <h1>数据总览</h1>
-          <p>实时统计邮箱账号数量及系统状态</p>
-        </div>
-      </div>
-      <div class="card-row">
-        <div class="stat-card">
-          <div class="top"><i class="fas fa-envelope"></i></div>
-          <h3>邮箱总数</h3>
-          <p class="num" id="account-count">0</p>
-        </div>
-        <div class="stat-card">
-          <div class="top"><i class="fas fa-folder"></i></div>
-          <h3>分组数量</h3>
-          <p class="num" id="group-count">1</p>
-        </div>
-      </div>
-
-      <div class="module-card">
-        <div class="card-title"><i class="fas fa-lightbulb"></i> 快捷操作</div>
-        <div class="action-bar">
-          <a class="btn btn-primary" href="#" data-target="emails"><i class="fas fa-envelope"></i> 进入邮箱管理</a>
+    <div class="page-header">
+      <div class="page-title">
+        <h1>邮箱管理</h1>
+        <p>导入、分组、搜索、收件箱垃圾箱取件</p>
       </div>
     </div>
 
-    <div id="emails" class="content-section">
-      <div class="page-header">
-        <div class="page-title">
-          <h1>邮箱管理</h1>
-          <p>导入、编辑、分组、收件箱/垃圾箱取件</p>
-        </div>
+    <!-- 顶部统计卡片 -->
+    <div class="card-row">
+      <div class="stat-card">
+        <div class="top"><i class="fas fa-envelope"></i></div>
+        <h3>邮箱总数</h3>
+        <p class="num" id="account-count">0</p>
       </div>
-
-      <div class="module-card">
-        <div class="card-title"><i class="fas fa-upload"></i> 导入邮箱数据</div>
-        <div class="upload-box" id="upload-box">
-          <i class="fas fa-cloud-upload-alt"></i>
-          <p>点击或拖拽TXT文件到此处上传</p>
-          <div class="file-info" id="file-info" style="margin-top:10px;color:var(--primary);"></div>
-          <input type="file" id="file-input" accept=".txt" style="display:none;">
-        </div>
-        <div class="action-bar" style="margin-top:16px;flex-wrap:wrap;">
-          <input type="password" class="form-input" id="password" placeholder="验证密码 请联系小黑" oninput="setPassword()">
-          <input type="text" class="form-input" id="delimiter" placeholder="分隔符 例如 ----">
-          <button class="btn btn-primary" onclick="importEmails()"><i class="fas fa-import"></i> 导入数据</button>
-          <button class="btn btn-success" onclick="exportData()"><i class="fas fa-download"></i> 导出TXT</button>
-          <button class="btn btn-danger" onclick="batchDelete()"><i class="fas fa-trash"></i> 批量删除</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteAllEmails()"><i class="fas fa-trash-alt"></i> 清空全部</button>
-        </div>
-      </div>
-
-      <div class="module-card">
-        <div class="card-title"><i class="fas fa-layer-group"></i> 分组管理</div>
-        <div class="action-bar">
-          <label style="color:var(--text-secondary);">分组筛选：</label>
-          <select class="form-input" id="group-filter" onchange="filterByGroup()"></select>
-
-          <label style="color:var(--text-secondary);margin-left:10px;">新增分组：</label>
-          <input type="text" class="form-input" id="new-group" placeholder="分组名称">
-          <button class="btn btn-primary btn-sm" onclick="createGroup()">创建</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteSelectedGroup()">删除分组</button>
-
-          <label style="color:var(--text-secondary);margin-left:10px;">批量改分组：</label>
-          <select class="form-input" id="batch-group-select"></select>
-          <button class="btn btn-success btn-sm" onclick="showBatchGroupConfirm()">应用选中</button>
-        </div>
-      </div>
-
-      <div class="module-card">
-        <div class="card-title"><i class="fas fa-search"></i> 搜索筛选</div>
-        <div class="action-bar">
-          <input type="text" class="form-input" id="email-search" placeholder="搜索邮箱/备注关键词">
-          <button class="btn btn-primary btn-sm" onclick="searchEmails()">搜索</button>
-          <button class="btn btn-default btn-sm" onclick="clearSearch()">清空</button>
-        </div>
-
-        <div class="table-wrap">
-          <table class="table" id="email-table">
-            <thead>
-              <tr>
-                <th><input type="checkbox" id="select-all"></th>
-                <th>邮箱账号</th>
-                <th>密码 <button class="password-toggle btn btn-sm btn-default" onclick="toggleAllPasswords()"><i class="fas fa-eye"></i></button></th>
-                <th>分组</th>
-                <th>备注</th>
-                <th>ClientID</th>
-                <th>RefreshToken</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div class="no-data" id="no-data" style="text-align:center;padding:30px;color:var(--text-secondary);display:none;">暂无邮箱数据</div>
-
-        <div class="action-bar" style="justify-content:space-between;margin-top:16px;">
-          <div class="pagination" id="pagination"></div>
-          <select class="form-input" id="items-per-page" onchange="changeItemsPerPage(this.value)">
-            <option value="5">5条/页</option>
-            <option value="10">10条/页</option>
-            <option value="20">20条/页</option>
-            <option value="50">50条/页</option>
-            <option value="100">100条/页</option>
-            <option value="200">200条/页</option>
-            <option value="500">500条/页</option>
-            <option value="5000">5000条/页</option>
-            <option value="10000">10000条/页</option>
-          </select>
-        </div>
+      <div class="stat-card">
+        <div class="top"><i class="fas fa-folder"></i></div>
+        <h3>分组数量</h3>
+        <p class="num" id="group-count">1</p>
       </div>
     </div>
 
-    <div id="mail-list" class="content-section">
-      <div class="page-header">
-        <div class="page-title">
-          <h1>邮件列表</h1>
-          <p>查看收件箱 / 垃圾箱邮件内容</p>
-        </div>
+    <!-- 导入模块 -->
+    <div class="module-card">
+      <div class="card-title"><i class="fas fa-upload"></i> 导入邮箱数据</div>
+      <div class="upload-box" id="upload-box">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p>点击或拖拽TXT文件到此处上传</p>
+        <div class="file-info" id="file-info" style="margin-top:10px;color:var(--primary);"></div>
+        <input type="file" id="file-input" accept=".txt" style="display:none;">
       </div>
-      <div class="module-card">
-        <div class="action-bar">
-          <input type="text" class="form-input" id="mail-search" placeholder="搜索发件人/主题">
-          <button class="btn btn-primary btn-sm" onclick="searchMails()">搜索</button>
-          <button class="btn btn-default btn-sm" onclick="clearMailSearch()">清空</button>
-        </div>
-        <div class="table-wrap">
-          <table class="table" id="mail-table">
-            <thead>
-              <tr>
-                <th>发件人</th>
-                <th>邮件主题</th>
-                <th>日期</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div class="no-data" id="no-data-mail" style="text-align:center;padding:30px;color:var(--text-secondary);display:none;">暂无邮件数据</div>
-        <div class="pagination" id="pagination-mail"></div>
+      <div class="action-bar" style="margin-top:16px;">
+        <input type="password" class="form-input" id="password" placeholder="验证密码" oninput="setPassword()">
+        <input type="text" class="form-input" id="delimiter" placeholder="分隔符 例如 ----">
+        <button class="btn btn-primary" onclick="importEmails()"><i class="fas fa-import"></i> 导入数据</button>
+        <button class="btn btn-success" onclick="exportData()"><i class="fas fa-download"></i> 导出TXT</button>
+        <button class="btn btn-danger" onclick="batchDelete()"><i class="fas fa-trash"></i> 批量删除</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteAllEmails()"><i class="fas fa-trash-alt"></i> 清空全部</button>
       </div>
     </div>
+
+    <!-- 分组管理 -->
+    <div class="module-card">
+      <div class="card-title"><i class="fas fa-layer-group"></i> 分组管理</div>
+      <div class="action-bar">
+        <label style="color:var(--text-secondary);">分组筛选：</label>
+        <select class="form-input" id="group-filter" onchange="filterByGroup()"></select>
+
+        <label style="color:var(--text-secondary);margin-left:10px;">新增分组：</label>
+        <input type="text" class="form-input" id="new-group" placeholder="分组名称">
+        <button class="btn btn-primary btn-sm" onclick="createGroup()">创建</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSelectedGroup()">删除分组</button>
+
+        <label style="color:var(--text-secondary);margin-left:10px;">批量改分组：</label>
+        <select class="form-input" id="batch-group-select"></select>
+        <button class="btn btn-success btn-sm" onclick="showBatchGroupConfirm()">应用选中</button>
+      </div>
+    </div>
+
+    <!-- 搜索列表 -->
+    <div class="module-card">
+      <div class="card-title"><i class="fas fa-search"></i> 搜索筛选</div>
+      <div class="action-bar">
+        <input type="text" class="form-input" id="email-search" placeholder="搜索邮箱/备注关键词">
+        <button class="btn btn-primary btn-sm" onclick="searchEmails()">搜索</button>
+        <button class="btn btn-default btn-sm" onclick="clearSearch()">清空</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table" id="email-table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="select-all"></th>
+              <th>邮箱账号</th>
+              <th>密码 <button class="password-toggle btn btn-sm btn-default" onclick="toggleAllPasswords()"><i class="fas fa-eye"></i></button></th>
+              <th>分组</th>
+              <th>备注</th>
+              <th>ClientID</th>
+              <th>RefreshToken</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="no-data" id="no-data">暂无邮箱数据</div>
+
+      <div class="action-bar" style="justify-content:space-between;margin-top:16px;">
+        <div class="pagination" id="pagination"></div>
+        <select class="form-input" id="items-per-page" onchange="changeItemsPerPage(this.value)">
+          <option value="5">5条/页</option>
+          <option value="10">10条/页</option>
+          <option value="20">20条/页</option>
+          <option value="50">50条/页</option>
+          <option value="100">100条/页</option>
+        </select>
+      </div>
+    </div>
+
   </main>
 </div>
 
+<!-- 弹窗 -->
 <div class="modal" id="modal">
   <div class="modal-content">
     <h3 id="modal-title">提示</h3>
@@ -549,7 +375,7 @@ body{
     <h3>编辑邮箱信息</h3>
     <input type="hidden" id="edit-email-original">
     <div style="margin:15px 0;text-align:left;">
-      <label style="display:block;margin-bottom:6px;color:var(--text-secondary);">邮箱账号（不可修改）</label>
+      <label style="display:block;margin-bottom:6px;color:var(--text-secondary);">邮箱账号</label>
       <input class="form-input" style="width:100%;" id="edit-email" readonly>
     </div>
     <div style="margin:15px 0;text-align:left;">
@@ -586,7 +412,7 @@ body{
     <p id="mail-modal-subject"></p>
     <p id="mail-modal-date"></p>
     <div id="mail-modal-content" style="word-wrap:break-word;"></div>
-    <div class="modal-btn-group" style="margin-top:20px;">
+    <div class="modal-btn-group">
       <button class="btn btn-primary" onclick="closeMailModal()">关闭</button>
     </div>
   </div>
@@ -624,7 +450,7 @@ function getGroups(){
     try{
       const decrypted=CryptoJS.AES.decrypt(encryptedData,ENCRYPT_KEY).toString(CryptoJS.enc.Utf8);
       return decrypted&&Array.isArray(JSON.parse(decrypted))?JSON.parse(decrypted):['默认分组'];
-    }catch(e){return['默认分组'];}
+    }catch(e){return['默认分组'];)
   }
   return['默认分组'];
 }
@@ -674,21 +500,11 @@ function showLoading(){document.getElementById('loading-overlay').style.display=
 function hideLoading(){document.getElementById('loading-overlay').style.display='none';}
 
 document.addEventListener('DOMContentLoaded',function(){
-  initSidebarLinks();
   initSelectAll();
   initDragUpload();
   initSearchEnter();
   initGroups();
   loadData();
-
-  const mailModal = document.getElementById('mail-modal');
-  mailModal.addEventListener('click',function(e){
-    if(e.target === mailModal) closeMailModal();
-  });
-
-  document.getElementById('menu-toggle').onclick=function(){
-    document.getElementById('sidebar').classList.toggle('active');
-  }
 });
 function initGroups(){
   const groups=getGroups();
@@ -697,21 +513,6 @@ function initGroups(){
     saveGroups(groups);
   }
   updateGroupSelectors();
-}
-
-function initSidebarLinks(){
-  document.querySelectorAll('.sidebar-menu li a').forEach(link=>{
-    link.addEventListener('click',function(e){
-      if(this.target==='_blank')return;
-      e.preventDefault();
-      document.querySelectorAll('.sidebar-menu li a').forEach(l=>l.classList.remove('active'));
-      this.classList.add('active');
-      const targetId=this.getAttribute('data-target');
-      if(!targetId)return;
-      document.querySelectorAll('.content-section').forEach(s=>s.classList.remove('active'));
-      document.getElementById(targetId).classList.add('active');
-    });
-  });
 }
 
 function loadData(){
@@ -737,18 +538,7 @@ function loadData(){
   updateDashboard(data);
 }
 function updateDashboard(data){
-  animateValue('account-count',parseInt(document.getElementById('account-count').textContent)||0,data.length,1000);
-}
-function animateValue(id,start,end,duration){
-  let startTimestamp=null;
-  const el=document.getElementById(id);
-  function step(timestamp){
-    if(!startTimestamp)startTimestamp=timestamp;
-    const progress=Math.min((timestamp-startTimestamp)/duration,1);
-    el.innerText=Math.floor(progress*(end-start)+start);
-    if(progress<1)requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
+  document.getElementById('account-count').innerText=data.length;
 }
 
 function renderTable(data){
@@ -826,7 +616,6 @@ function deleteAllEmails(){
   });
 }
 
-// ========== 修复后的分页（永远不会超长）==========
 function renderPagination(total){
   const pag = document.getElementById('pagination');
   pag.innerHTML = '';
@@ -836,29 +625,11 @@ function renderPagination(total){
   let startPage = Math.max(1, currentPage - 5);
   let endPage = Math.min(totalPage, currentPage + 4);
 
-  if (endPage - startPage < 9) {
-    if (startPage === 1) endPage = Math.min(10, totalPage);
-    if (endPage === totalPage) startPage = Math.max(1, totalPage - 9);
-  }
-
-  if(currentPage > 1){
+  if(startPage > 1){
     const prev = document.createElement('button');
     prev.innerText = '上一页';
     prev.onclick = () => changePage(currentPage - 1);
     pag.appendChild(prev);
-  }
-
-  if(startPage > 1){
-    const first = document.createElement('button');
-    first.innerText = 1;
-    first.onclick = () => changePage(1);
-    pag.appendChild(first);
-    if(startPage > 2){
-      const dot = document.createElement('button');
-      dot.innerText = '...';
-      dot.disabled = true;
-      pag.appendChild(dot);
-    }
   }
 
   for(let i = startPage; i <= endPage; i++){
@@ -867,19 +638,6 @@ function renderPagination(total){
     if(i === currentPage) btn.classList.add('active');
     btn.onclick = () => changePage(i);
     pag.appendChild(btn);
-  }
-
-  if(endPage < totalPage){
-    if(endPage < totalPage - 1){
-      const dot = document.createElement('button');
-      dot.innerText = '...';
-      dot.disabled = true;
-      pag.appendChild(dot);
-    }
-    const last = document.createElement('button');
-    last.innerText = totalPage;
-    last.onclick = () => changePage(totalPage);
-    pag.appendChild(last);
   }
 
   if(currentPage < totalPage){
@@ -921,26 +679,19 @@ function loadMailList(tableIndex,mailbox){
   const apiUrl=`/api/mail-all?refresh_token=${item.refreshToken}&client_id=${item.clientId}&email=${item.email}&mailbox=${mailbox}&response_type=json&password=${pwd}`;
   
   fetch(apiUrl).then(res=>{
-    if(!res.ok){
-      if(res.status===401)throw {status:401};
-      throw new Error('请求异常');
-    }
+    if(!res.ok) throw new Error('请求异常');
     return res.json();
   }).then(data=>{
     mailData=data;originalMailData=[...data];
-    document.querySelectorAll('.content-section').forEach(s=>s.classList.remove('active'));
-    document.getElementById('mail-list').classList.add('active');
     renderMailTable(mailData);
   }).catch(err=>{
-    if(err.status===401)showModal('权限提示','需联系管理员小黑开通使用权限 QQ:113575320');
-    else showModal('错误','获取邮件失败，请稍后重试');
+    showModal('错误','获取邮件失败，请检查接口是否正常');
   }).finally(()=>hideLoading());
 }
 
 function renderMailTable(data){
   const tbody=document.querySelector('#mail-table tbody');
   tbody.innerHTML='';
-  document.getElementById('no-data-mail').style.display=data.length?'none':'block';
   const start=(currentMailPage-1)*mailItemsPerPage;
   const end=start+mailItemsPerPage;
   const pageData=data.slice(start,end);
@@ -954,93 +705,14 @@ function renderMailTable(data){
     `;
     tbody.appendChild(tr);
   });
-  renderMailPagination(data.length);
-}
-
-// ========== 修复后的邮件分页 ==========
-function renderMailPagination(total){
-  const pag = document.getElementById('pagination-mail');
-  pag.innerHTML = '';
-  const totalPage = Math.ceil(total / mailItemsPerPage);
-  if(totalPage === 0) return;
-
-  let startPage = Math.max(1, currentMailPage - 5);
-  let endPage = Math.min(totalPage, currentMailPage + 4);
-
-  if (endPage - startPage < 9) {
-    if (startPage === 1) endPage = Math.min(10, totalPage);
-    if (endPage === totalPage) startPage = Math.max(1, totalPage - 9);
-  }
-
-  if(currentMailPage > 1){
-    const prev = document.createElement('button');
-    prev.innerText = '上一页';
-    prev.onclick = () => changeMailPage(currentMailPage - 1);
-    pag.appendChild(prev);
-  }
-
-  if(startPage > 1){
-    const first = document.createElement('button');
-    first.innerText = 1;
-    first.onclick = () => changeMailPage(1);
-    pag.appendChild(first);
-    if(startPage > 2){
-      const dot = document.createElement('button');
-      dot.innerText = '...';
-      dot.disabled = true;
-      pag.appendChild(dot);
-    }
-  }
-
-  for(let i = startPage; i <= endPage; i++){
-    const btn = document.createElement('button');
-    btn.innerText = i;
-    if(i === currentMailPage) btn.classList.add('active');
-    btn.onclick = () => changeMailPage(i);
-    pag.appendChild(btn);
-  }
-
-  if(endPage < totalPage){
-    if(endPage < totalPage - 1){
-      const dot = document.createElement('button');
-      dot.innerText = '...';
-      dot.disabled = true;
-      pag.appendChild(dot);
-    }
-    const last = document.createElement('button');
-    last.innerText = totalPage;
-    last.onclick = () => changeMailPage(totalPage);
-    pag.appendChild(last);
-  }
-
-  if(currentMailPage < totalPage){
-    const next = document.createElement('button');
-    next.innerText = '下一页';
-    next.onclick = () => changeMailPage(currentMailPage + 1);
-    pag.appendChild(next);
-  }
 }
 
 function changeMailPage(page){
   currentMailPage=page;
-  const list=mailSearchKeyword?originalMailData.filter(x=>x.send.toLowerCase().includes(mailSearchKeyword)||x.subject.toLowerCase().includes(mailSearchKeyword)):originalMailData;
-  renderMailTable(list);
-}
-function searchMails(){
-  mailSearchKeyword=document.getElementById('mail-search').value.trim().toLowerCase();
-  currentMailPage=1;
-  const list=originalMailData.filter(x=>x.send.toLowerCase().includes(mailSearchKeyword)||x.subject.toLowerCase().includes(mailSearchKeyword));
-  renderMailTable(list);
-}
-function clearMailSearch(){
-  document.getElementById('mail-search').value='';
-  mailSearchKeyword='';
-  currentMailPage=1;
   renderMailTable(originalMailData);
 }
 function viewMail(idx){
-  const list=mailSearchKeyword?originalMailData.filter(x=>x.send.toLowerCase().includes(mailSearchKeyword)||x.subject.toLowerCase().includes(mailSearchKeyword)):originalMailData;
-  const item=list[idx];
+  const item=originalMailData[idx];
   document.getElementById('mail-modal-title').innerText=item.subject;
   document.getElementById('mail-modal-sender').innerText='发件人：'+item.send;
   document.getElementById('mail-modal-subject').innerText='主题：'+item.subject;
@@ -1106,7 +778,6 @@ function importEmails(){
       if(arr.length>=4){
         const email=arr[0],pwd=arr[1],cid=arr[2],rt=arr[3];
         let group='默认分组',remark='';
-        if(arr.length>=6){group=arr[2];remark=arr[3];cid=arr[4];rt=arr[5];}
         if(!email||!pwd||!cid||!rt){err++;return;}
         if(exist.has(email.toLowerCase())){dup++;return;}
         const groups=getGroups();
@@ -1150,7 +821,6 @@ function toggleAllPasswords(){
 
 function initSearchEnter(){
   document.getElementById('email-search').addEventListener('keypress',e=>{if(e.key==='Enter')searchEmails();});
-  document.getElementById('mail-search').addEventListener('keypress',e=>{if(e.key==='Enter')searchMails();});
 }
 function searchEmails(){
   searchKeyword=document.getElementById('email-search').value.trim().toLowerCase();
@@ -1228,7 +898,7 @@ function editEmail(idx){
   let data=decryptData(localStorage.getItem('emailData'))||[];
   let filtered=data;
   if(currentGroupFilter!=='all')filtered=filtered.filter(x=>x.group===currentGroupFilter);
-  if(searchKeyword)filtered=filtered.filter(x=>x.email.includes(searchKeyword)||x.remark.includes(searchKeyword));
+  if(searchKeyword)filtered=filtered.filter(x=>x.email.toLowerCase().includes(searchKeyword)||x.remark.toLowerCase().includes(searchKeyword));
   const item=filtered[idx];
   document.getElementById('edit-email-original').value=item.email;
   document.getElementById('edit-email').value=item.email;
@@ -1236,31 +906,26 @@ function editEmail(idx){
   document.getElementById('edit-client-id').value=item.clientId;
   document.getElementById('edit-refresh-token').value=item.refreshToken;
   document.getElementById('edit-remark').value=item.remark||'';
-  updateGroupSelectors();
   document.getElementById('edit-group').value=item.group||'默认分组';
   document.getElementById('edit-modal').style.display='flex';
 }
 function closeEditModal(){document.getElementById('edit-modal').style.display='none';}
 function saveEdit(){
-  const oldMail=document.getElementById('edit-email-original').value;
+  const email=document.getElementById('edit-email-original').value;
   const pwd=document.getElementById('edit-password').value;
-  const cid=document.getElementById('edit-client-id').value;
-  const rt=document.getElementById('edit-refresh-token').value;
   const group=document.getElementById('edit-group').value;
   const remark=document.getElementById('edit-remark').value;
-  if(!pwd||!cid||!rt)return showModal('错误','关键信息不能为空');
+  const cid=document.getElementById('edit-client-id').value;
+  const rt=document.getElementById('edit-refresh-token').value;
+  if(!email||!pwd||!cid||!rt)return showModal('错误','必填项不能为空');
   let data=decryptData(localStorage.getItem('emailData'))||[];
-  const i=data.findIndex(x=>x.email===oldMail);
-  if(i>-1){
-    data[i].password=pwd;
-    data[i].clientId=cid;
-    data[i].refreshToken=rt;
-    data[i].group=group;
-    data[i].remark=remark;
+  const idx=data.findIndex(x=>x.email===email);
+  if(idx>-1){
+    data[idx]={...data[idx],password:pwd,group,remark,clientId:cid,refreshToken:rt};
     localStorage.setItem('emailData',encryptData(data));
-    loadData();
     closeEditModal();
-    showModal('成功','邮箱信息已更新');
+    loadData();
+    showModal('成功','修改已保存');
   }
 }
 
@@ -1270,17 +935,19 @@ function showModal(title,msg){
   document.getElementById('modal').style.display='flex';
 }
 function closeModal(){document.getElementById('modal').style.display='none';}
+
 function showConfirmModal(title,msg,cb){
   confirmCallback=cb;
   document.getElementById('confirm-title').innerText=title;
-  document.getElementById('confirm-message').innerText=msg;
+  document.getElementById('confirm-message').innerHTML=msg;
   document.getElementById('confirm-modal').style.display='flex';
 }
-function confirmAction(){
-  if(confirmCallback)confirmCallback();
-  closeConfirmModal();
-}
 function closeConfirmModal(){document.getElementById('confirm-modal').style.display='none';}
+function confirmAction(){
+  closeConfirmModal();
+  if(confirmCallback)confirmCallback();
+}
 </script>
+
 </body>
 </html>
