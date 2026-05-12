@@ -129,6 +129,19 @@ body{
   outline:none;
   min-width:120px;
 }
+.form-textarea{
+  width:100%;
+  height:120px;
+  padding:10px;
+  background:#273444;
+  border:1px solid var(--border);
+  border-radius:6px;
+  color:var(--text-primary);
+  font-size:13px;
+  outline:none;
+  resize:none;
+  margin-top:10px;
+}
 
 .table-wrap{
   overflow-x:auto;
@@ -167,7 +180,7 @@ body{
 .upload-box i{font-size:28px;color:var(--primary);margin-bottom:10px;}
 .upload-box p{color:var(--text-secondary);font-size:13px;}
 
-/* 进度条样式（你原有） */
+/* 进度条样式 */
 .progress-container {
   width: 100%;height: 6px;background: #334155;border-radius: 3px;margin: 10px 0;display: none;overflow: hidden;
 }
@@ -247,12 +260,18 @@ body{
 
     <div class="module-card">
       <div class="card-title"><i class="fas fa-upload"></i> 导入邮箱数据</div>
+      
+      <!-- 文件上传区域 -->
       <div class="upload-box" id="upload-box">
         <i class="fas fa-cloud-upload-alt"></i>
         <p>点击或拖拽TXT文件到此处上传</p>
         <div class="file-info" id="file-info" style="margin-top:10px;color:var(--primary);"></div>
         <input type="file" id="file-input" accept=".txt" style="display:none;">
       </div>
+
+      <!-- 新增：复制粘贴文本框导入 -->
+      <textarea class="form-textarea" id="paste-import-text" placeholder="直接粘贴邮箱账号多行文本，格式：邮箱----密码----ClientID----RefreshToken"></textarea>
+      <button class="btn btn-primary" style="margin-top:10px;" onclick="pasteImportEmails()"><i class="fas fa-paste"></i> 粘贴文本导入</button>
 
       <div class="progress-container" id="progress-container">
         <div class="progress-bar" id="progress-bar"></div>
@@ -262,7 +281,7 @@ body{
       <div class="action-bar" style="margin-top:16px;">
         <input type="password" class="form-input" id="password" placeholder="验证密码" oninput="setPassword()">
         <input type="text" class="form-input" id="delimiter" placeholder="分隔符 例如 ----">
-        <button class="btn btn-primary" onclick="importEmails()"><i class="fas fa-file-import"></i> 导入</button>
+        <button class="btn btn-primary" onclick="importEmails()"><i class="fas fa-file-import"></i> 文件导入</button>
         <button class="btn btn-success" onclick="exportData()"><i class="fas fa-download"></i> 导出</button>
         <button class="btn btn-danger" onclick="batchDelete()"><i class="fas fa-trash"></i> 批量删</button>
         <button class="btn btn-danger btn-sm" onclick="deleteAllEmails()"><i class="fas fa-trash-alt"></i> 清空</button>
@@ -759,12 +778,13 @@ function initDragUpload(){
   };
 }
 
-// ===================== 【修复】大量导入邮箱永不卡死 + 进度条 ========================
-async function importEmails() {
+// 共用导入核心逻辑
+async function coreImportLines(lines){
   const delimiter = document.getElementById('delimiter').value.trim();
-  const file = document.getElementById('file-input');
-  if (!delimiter) return showModal('错误', '请输入分隔符');
-  if (!file.files.length) return showModal('错误', '请选择TXT文件');
+  if (!delimiter) {
+    showModal('错误', '请先填写分隔符');
+    return;
+  }
 
   const progressContainer = document.getElementById('progress-container');
   const progressBar = document.getElementById('progress-bar');
@@ -774,72 +794,90 @@ async function importEmails() {
   importStatus.style.display = 'block';
   progressBar.style.width = '0%';
 
+  const totalLines = lines.length;
+  let data = decryptData(localStorage.getItem('emailData')) || [];
+  const existEmails = new Set(data.map(x => x.email.toLowerCase().trim()));
+
+  let ok = 0, dup = 0, errLine = 0;
+  const BATCH_SIZE = 30;
+
+  for (let i = 0; i < totalLines; i += BATCH_SIZE) {
+    const batch = lines.slice(i, i + BATCH_SIZE);
+
+    batch.forEach(line => {
+      const parts = line.split(delimiter).map(x => x.trim());
+      if (parts.length >= 4) {
+        let email = parts[0];
+        const pwd = parts[1];
+        const cid = parts[2];
+        const rt = parts[3];
+
+        if (!email || !pwd || !cid || !rt) { errLine++; return; }
+
+        const emailLower = email.toLowerCase();
+        if (existEmails.has(emailLower)) { dup++; return; }
+
+        data.push({
+          email: email,
+          password: pwd,
+          clientId: cid,
+          refreshToken: rt,
+          group: '默认分组',
+          remark: ''
+        });
+        existEmails.add(emailLower);
+        ok++;
+      } else {
+        errLine++;
+      }
+    });
+
+    const current = Math.min(i + BATCH_SIZE, totalLines);
+    const percent = (current / totalLines) * 100;
+    progressBar.style.width = percent + '%';
+    importStatus.innerText = `导入中：${current}/${totalLines} 成功：${ok} 重复：${dup}`;
+    await new Promise(r => setTimeout(r, 5));
+  }
+
+  localStorage.setItem('emailData', encryptData(data));
+  loadData();
+  
+  progressBar.style.width = '100%';
+  importStatus.innerText = `✅ 导入完成！成功：${ok} 重复：${dup} 错误：${errLine}`;
+
+  setTimeout(() => {
+    progressContainer.style.display = 'none';
+    importStatus.style.display = 'none';
+  }, 2000);
+
+  showModal('导入成功', `成功：${ok} 条<br>重复：${dup} 条<br>错误：${errLine} 条`);
+}
+
+// 文件导入
+async function importEmails() {
+  const file = document.getElementById('file-input');
+  if (!file.files.length) return showModal('错误', '请选择TXT文件');
+
   const f = file.files[0];
   const reader = new FileReader();
   reader.readAsText(f);
 
   reader.onload = async function (e) {
     const lines = e.target.result.split('\n').filter(x => x.trim());
-    const totalLines = lines.length;
-    let data = decryptData(localStorage.getItem('emailData')) || [];
-    const existEmails = new Set(data.map(x => x.email.toLowerCase().trim()));
-
-    let ok = 0, dup = 0, errLine = 0;
-    const BATCH_SIZE = 30;
-
-    for (let i = 0; i < totalLines; i += BATCH_SIZE) {
-      const batch = lines.slice(i, i + BATCH_SIZE);
-
-      batch.forEach(line => {
-        const parts = line.split(delimiter).map(x => x.trim());
-        if (parts.length >= 4) {
-          let email = parts[0];
-          const pwd = parts[1];
-          const cid = parts[2];
-          const rt = parts[3];
-
-          if (!email || !pwd || !cid || !rt) { errLine++; return; }
-
-          const emailLower = email.toLowerCase();
-          if (existEmails.has(emailLower)) { dup++; return; }
-
-          data.push({
-            email: email,
-            password: pwd,
-            clientId: cid,
-            refreshToken: rt,
-            group: '默认分组',
-            remark: ''
-          });
-          existEmails.add(emailLower);
-          ok++;
-        } else {
-          errLine++;
-        }
-      });
-
-      const current = Math.min(i + BATCH_SIZE, totalLines);
-      const percent = (current / totalLines) * 100;
-      progressBar.style.width = percent + '%';
-      importStatus.innerText = `导入中：${current}/${totalLines} 成功：${ok} 重复：${dup}`;
-      await new Promise(r => setTimeout(r, 5));
-    }
-
-    localStorage.setItem('emailData', encryptData(data));
-    loadData();
-    
-    progressBar.style.width = '100%';
-    importStatus.innerText = `✅ 导入完成！成功：${ok} 重复：${dup} 错误：${errLine}`;
-
-    setTimeout(() => {
-      progressContainer.style.display = 'none';
-      importStatus.style.display = 'none';
-    }, 2000);
-
+    await coreImportLines(lines);
     file.value = '';
     document.getElementById('file-info').innerText = '';
-    showModal('导入成功', `成功：${ok} 条<br>重复：${dup} 条<br>错误：${errLine} 条`);
   };
+}
+
+// 粘贴文本框导入
+async function pasteImportEmails(){
+  const text = document.getElementById('paste-import-text').value;
+  if(!text.trim()) return showModal('提示','请先粘贴账号文本');
+  const lines = text.split('\n').filter(x => x.trim());
+  await coreImportLines(lines);
+  // 导入后清空文本框
+  document.getElementById('paste-import-text').value = '';
 }
 
 function exportData(){
@@ -857,18 +895,15 @@ function exportData(){
 
 function toggleAllPasswords(){
   passwordVisible=!passwordVisible;
-  document.querySelectorAll('.password-text').forEach((span,i)=>{
+  document.querySelectorAll('.password-text').forEach(span=>{
     const row = span.closest('tr');
-    if(!row) return;
     const toggleBtn = row.querySelector('.password-toggle');
     if(!toggleBtn) return;
-    
-    const pwdMatch = toggleBtn.getAttribute('onclick').match(/'([^']+)'/);
-    const pwd = pwdMatch ? pwdMatch[1] : '';
-    
+    const onclickStr = toggleBtn.getAttribute('onclick');
+    const pwd = onclickStr.match(/'([^']+)'.+/)[1];
     span.textContent=passwordVisible?pwd:'••••••••';
     const icon=toggleBtn.querySelector('i');
-    if(icon) icon.className=passwordVisible?'fas fa-eye-slash':'fas fa-eye';
+    icon.className=passwordVisible?'fas fa-eye-slash':'fas fa-eye';
   });
 }
 
