@@ -263,7 +263,7 @@ async function get_dual_folder_latest_email_imap(imapConfig) {
         // 收件箱
         try {
           await new Promise(r => imap.openBox('INBOX', true, r));
-          const ids = await new Promise((r, j) => imap.search(['ALL'], (err, r) => err ? j(err) : r(r)));
+          const ids = await new Promise((r, j) => imap.search(['ALL'], (err, res) => err ? j(err) : r(res)));
           if (ids.length) {
             const f = imap.fetch(ids.slice(-1), { bodies: '' });
             await new Promise(r => {
@@ -288,7 +288,7 @@ async function get_dual_folder_latest_email_imap(imapConfig) {
         // 垃圾箱
         try {
           await new Promise(r => imap.openBox('Junk', true, r));
-          const ids = await new Promise((r, j) => imap.search(['ALL'], (err, r) => err ? j(err) : r(r)));
+          const ids = await new Promise((r, j) => imap.search(['ALL'], (err, res) => err ? j(err) : r(res)));
           if (ids.length) {
             const f = imap.fetch(ids.slice(-1), { bodies: '' });
             await new Promise(r => {
@@ -328,7 +328,7 @@ const generateAuthString = (user, accessToken) => {
   return Buffer.from(authString).toString('base64');
 };
 
-// ===================== 主入口：新GR → 老GR → IMAP =====================
+// ===================== 主入口：优先IMAP，失败重试1次，再新GR → 老GR =====================
 module.exports = async (req, res) => {
   try {
     if (!CONFIG.SUPPORTED_METHODS.includes(req.method)) {
@@ -350,32 +350,46 @@ module.exports = async (req, res) => {
     if (paramErr) return res.status(400).json({ code: 4002, error: paramErr.message });
 
     let mail = null;
-    let token = null;
+    let imapToken = null;
 
-    // 第一步：尝试 新GR
-    console.log("🔹 尝试新GR取件");
-    token = await getNewGrToken(refresh_token, client_id);
-    if (token) {
-      mail = await get_dual_folder_latest_email_graph(token);
+    // 第一步：IMAP 第一次尝试
+    console.log("🔹 首次尝试IMAP取件");
+    try {
+      imapToken = await getImapToken(refresh_token, client_id);
+      const imapConfig = { ...CONFIG.IMAP_CONFIG, user: email, xoauth2: generateAuthString(email, imapToken) };
+      mail = await get_dual_folder_latest_email_imap(imapConfig);
+    } catch (e) {
+      console.log("🔹 首次IMAP失败：", e.message);
     }
 
-    // 第二步：新GR失败，尝试 老GR
+    // IMAP为空/报错，重试一次IMAP
     if (!mail) {
-      console.log("🔹 新GR失败，尝试老GR取件");
-      token = await getOldGrToken(refresh_token, client_id);
+      console.log("🔹 IMAP无结果，重试一次IMAP");
+      try {
+        imapToken = await getImapToken(refresh_token, client_id);
+        const imapConfig = { ...CONFIG.IMAP_CONFIG, user: email, xoauth2: generateAuthString(email, imapToken) };
+        mail = await get_dual_folder_latest_email_imap(imapConfig);
+      } catch (e) {
+        console.log("🔹 重试IMAP依旧失败：", e.message);
+      }
+    }
+
+    // IMAP两次都失败，走新Graph
+    if (!mail) {
+      console.log("🔹 IMAP两次失败，切换新Graph取件");
+      const token = await getNewGrToken(refresh_token, client_id);
       if (token) {
         mail = await get_dual_folder_latest_email_graph(token);
       }
     }
 
-    // 第三步：GR都失败，兜底 IMAP
+    // 新Graph失败，走老Graph兜底
     if (!mail) {
-      console.log("🔹 老GR失败，降级IMAP取件");
-      try {
-        const imapToken = await getImapToken(refresh_token, client_id);
-        const imapConfig = { ...CONFIG.IMAP_CONFIG, user: email, xoauth2: generateAuthString(email, imapToken) };
-        mail = await get_dual_folder_latest_email_imap(imapConfig);
-      } catch (e) { }
+      console.log("🔹 新Graph失败，切换老Graph取件");
+      const token = await getOldGrToken(refresh_token, client_id);
+      if (token) {
+        mail = await get_dual_folder_latest_email_graph(token);
+      }
     }
 
     // 返回结果
