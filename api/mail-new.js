@@ -10,8 +10,8 @@ const CONFIG = {
     port: 993,
     tls: true,
     tlsOptions: { rejectUnauthorized: false },
-    connTimeout: 10000,
-    authTimeout: 10000
+    connTimeout: 6000,
+    authTimeout: 6000
   },
   MAILBOX_MAP: {
     '收件箱': 'inbox',
@@ -25,7 +25,7 @@ const CONFIG = {
     '垃圾邮件': 'junkemail',
     'junk': 'junkemail'
   },
-  REQUEST_TIMEOUT: 10000,
+  REQUEST_TIMEOUT: 8000,
   SUPPORTED_METHODS: ['GET', 'POST'],
   REQUIRED_PARAMS: ['refresh_token', 'client_id', 'email', 'mailbox'],
   TARGET_FOLDERS: {
@@ -40,14 +40,12 @@ const CONFIG = {
   }
 };
 
-// 严格分3路：新GR / 老GR / IMAP 独立Scope
 const SCOPE = {
   NEW_GR: "User.Read Mail.Read offline_access",
   OLD_GR: "https://graph.microsoft.com/.default",
   IMAP: "https://outlook.office.com/IMAP.AccessAsUser.All offline_access"
 };
 
-// 请求超时封装
 async function fetchWithTimeout(url, options = {}, timeout = CONFIG.REQUEST_TIMEOUT) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -57,11 +55,10 @@ async function fetchWithTimeout(url, options = {}, timeout = CONFIG.REQUEST_TIME
     return response;
   } catch (error) {
     clearTimeout(timeoutId);
-    throw new Error(error.name === "AbortError" ? "请求超时（超过10秒）" : error.message);
+    throw new Error(error.name === "AbortError" ? "请求超时" : error.message);
   }
 }
 
-// 单独获取 新GR Token
 async function getNewGrToken(refresh_token, client_id) {
   try {
     const res = await fetchWithTimeout(CONFIG.OAUTH_TOKEN_URL, {
@@ -82,7 +79,6 @@ async function getNewGrToken(refresh_token, client_id) {
   }
 }
 
-// 单独获取 老GR Token
 async function getOldGrToken(refresh_token, client_id) {
   try {
     const res = await fetchWithTimeout(CONFIG.OAUTH_TOKEN_URL, {
@@ -103,7 +99,6 @@ async function getOldGrToken(refresh_token, client_id) {
   }
 }
 
-// 单独获取 IMAP Token
 async function getImapToken(refresh_token, client_id) {
   const res = await fetchWithTimeout(CONFIG.OAUTH_TOKEN_URL, {
     method: 'POST',
@@ -120,7 +115,6 @@ async function getImapToken(refresh_token, client_id) {
   return data.access_token;
 }
 
-// HTML特殊字符转义
 function escapeHtml(str) {
   if (!str) return '';
   return str
@@ -131,13 +125,11 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-// JSON响应特殊字符转义
 function escapeJson(str) {
   if (!str) return str;
   return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
 }
 
-// 对比两封邮件，返回最新的一封
 function getLatestEmail(email1, email2) {
   if (!email1) return email2;
   if (!email2) return email1;
@@ -146,17 +138,15 @@ function getLatestEmail(email1, email2) {
   return time1 > time2 ? email1 : email2;
 }
 
-// 参数校验
 function validateParams(params) {
   const { email } = params;
   const emailReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailReg.test(email)) return new Error("邮箱格式无效，请输入正确的邮箱地址");
-  if (params.refresh_token?.length < 50) return new Error("refresh_token格式无效");
-  if (params.client_id?.length < 10) return new Error("client_id格式无效");
+  if (!emailReg.test(email)) return new Error("邮箱格式无效");
+  if (params.refresh_token?.length < 50) return new Error("refresh_token无效");
+  if (params.client_id?.length < 10) return new Error("client_id无效");
   return null;
 }
 
-// ===================== 【已修复】验证码提取（强制优先6位） =====================
 function preprocessText(rawText) {
   if (!rawText) return '';
   const withoutHtml = rawText.replace(/<[^>]+>/g, ' ');
@@ -167,12 +157,12 @@ function preprocessText(rawText) {
 
 const VERIFY_CODE_RULES = [
   { regex: /(\d{6})\s*is your/i, desc: "TikTok专属格式", extractGroup: 1, confidence: 100 },
-  { regex: /(verify|verification|validation|auth|security).*code\s*(\d{6})/i, desc: "英文语义6位数字验证码", extractGroup: 2, confidence: 100 },
-  { regex: /(验证码|校验码|动态码|登录码|安全码|短信码|授权码|动态口令|登录口令)[:：\s]*([0-9]{6})/i, desc: "中文语义6位数字验证码", extractGroup: 2, confidence: 100 },
-  { regex: /(验证码|校验码)[:：\s]*([0-9]{3}[-_][0-9]{3})/i, desc: "带分隔符的6位数字验证码", extractGroup: 2, confidence: 95 },
+  { regex: /(verify|verification|validation|auth|security).*code\s*(\d{6})/i, desc: "英文语义6位验证码", extractGroup: 2, confidence: 100 },
+  { regex: /(验证码|校验码|动态码|登录码|安全码|短信码|授权码|动态口令|登录口令)[:：\s]*([0-9]{6})/i, desc: "中文语义6位验证码", extractGroup: 2, confidence: 100 },
+  { regex: /(验证码|校验码)[:：\s]*([0-9]{3}[-_][0-9]{3})/i, desc: "带分隔符6位验证码", extractGroup: 2, confidence: 95 },
   { regex: /\b[0-9]{6}\b/, desc: "纯6位数字验证码", extractGroup: 0, confidence: 90 },
-  { regex: /(验证码|校验码)[:：\s]*([0-9]{4})/i, desc: "中文语义4位数字验证码（兜底）", extractGroup: 2, confidence: 10 },
-  { regex: /\b[0-9]{4}\b/, desc: "纯4位数字验证码（最终兜底）", extractGroup: 0, confidence: 5 }
+  { regex: /(验证码|校验码)[:：\s]*([0-9]{4})/i, desc: "中文4位兜底", extractGroup: 2, confidence: 10 },
+  { regex: /\b[0-9]{4}\b/, desc: "纯4位兜底", extractGroup: 0, confidence: 5 }
 ];
 
 function extractVerifyCode(text) {
@@ -182,8 +172,8 @@ function extractVerifyCode(text) {
   for (const rule of VERIFY_CODE_RULES) {
     const matches = cleanText.match(rule.regex);
     if (matches) {
-      const code = matches[rule.extractGroup].trim();
-      const finalCode = code.replace(/\D/g, '');
+      const rawCode = matches[rule.extractGroup].trim();
+      const finalCode = rawCode.replace(/\D/g, '');
       if (finalCode.length === 6) {
         matchedResults.push({ code: finalCode, rule: rule.desc, confidence: rule.confidence });
       } else if (finalCode.length === 4 && rule.confidence < 90) {
@@ -199,7 +189,7 @@ function extractVerifyCode(text) {
 
 function extractVerifyCodeWithLog(text, emailSubject = '未知主题') {
   const result = extractVerifyCode(text);
-  console.log(`【6位验证码提取】邮件主题：${emailSubject} | 验证码：${result.code} | 匹配规则：${result.rule} | 置信度：${result.confidence}`);
+  console.log(`【验证码】主题：${emailSubject} | 码：${result.code} | ${result.rule} | ${result.confidence}`);
   return result;
 }
 
@@ -208,7 +198,6 @@ function getVerifyCodeFromEmail(emailData, emailSubject = '未知主题') {
   return extractVerifyCodeWithLog(targetText, emailSubject);
 }
 
-// ===================== 核心业务函数 =====================
 function generateEmailHtml(emailData) {
   const { send, subject, text, html: emailHtml, date, folderSource, verifyCode } = emailData;
   const escapedText = escapeHtml(text || '');
@@ -254,81 +243,74 @@ async function get_dual_folder_latest_email_graph(access_token) {
 }
 
 async function get_dual_folder_latest_email_imap(imapConfig) {
-  const imap = new Imap(imapConfig);
-  let inboxEmail = null, junkEmail = null;
-
   return new Promise((resolve) => {
+    const imap = new Imap(imapConfig);
+    let inboxEmail = null, junkEmail = null;
+    let finished = false;
+
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      imap.end();
+      resolve(getLatestEmail(inboxEmail, junkEmail));
+    };
+
+    imap.once('error', () => finish());
     imap.once('ready', async () => {
-      try {
-        // 收件箱
-        try {
-          await new Promise(r => imap.openBox('INBOX', true, r));
-          const ids = await new Promise((r, j) => imap.search(['ALL'], (err, res) => err ? j(err) : r(res)));
-          if (ids.length) {
-            const f = imap.fetch(ids.slice(-1), { bodies: '' });
-            await new Promise(r => {
-              f.on('message', async (msg) => {
-                const stream = await new Promise(r => msg.on('body', r));
-                const mail = await simpleParser(stream);
-                inboxEmail = {
-                  send: escapeJson(mail.from?.text || '未知发件人'),
-                  subject: escapeJson(mail.subject || '无主题'),
-                  text: escapeJson(mail.text || ''),
-                  html: mail.html || `<p>${escapeHtml(mail.text || '').replace(/\n/g, '<br>')}</p>`,
-                  date: mail.date || new Date().toISOString(),
-                  folderSource: '收件箱',
-                  verifyCode: getVerifyCodeFromEmail({ text: mail.text, html: mail.html }, mail.subject)
-                };
-                r();
-              });
+      const readBox = async (boxName, folderName) => {
+        return new Promise(async (cb) => {
+          try {
+            await new Promise(r => imap.openBox(boxName, true, r));
+            const ids = await new Promise((r, j) => imap.search(['ALL'], (err, res) => err ? j(err) : r(res)));
+            if (!ids.length) return cb(null);
+            const targetIds = ids.slice(-3);
+            const f = imap.fetch(targetIds, { bodies: '' });
+            let targetMail = null;
+            f.on('message', async (msg) => {
+              const stream = await Promise.race([
+                new Promise(r => msg.on('body', r)),
+                new Promise((_, rej) => setTimeout(() => rej(new Error('流读取超时')), 3000))
+              ]);
+              const mail = await simpleParser(stream);
+              const mailObj = {
+                send: escapeJson(mail.from?.text || '未知发件人'),
+                subject: escapeJson(mail.subject || '无主题'),
+                text: escapeJson(mail.text || ''),
+                html: mail.html || `<p>${escapeHtml(mail.text || '').replace(/\n/g, '<br>')}</p>`,
+                date: mail.date || new Date().toISOString(),
+                folderSource: folderName,
+                verifyCode: getVerifyCodeFromEmail({ text: mail.text, html: mail.html }, mail.subject)
+              };
+              if (!targetMail || new Date(mailObj.date) > new Date(targetMail.date)) {
+                targetMail = mailObj;
+              }
             });
+            f.once('end', () => cb(targetMail));
+          } catch (err) {
+            cb(null);
           }
-        } catch { }
+        });
+      };
 
-        // 垃圾箱
-        try {
-          await new Promise(r => imap.openBox('Junk', true, r));
-          const ids = await new Promise((r, j) => imap.search(['ALL'], (err, res) => err ? j(err) : r(res)));
-          if (ids.length) {
-            const f = imap.fetch(ids.slice(-1), { bodies: '' });
-            await new Promise(r => {
-              f.on('message', async (msg) => {
-                const stream = await new Promise(r => msg.on('body', r));
-                const mail = await simpleParser(stream);
-                junkEmail = {
-                  send: escapeJson(mail.from?.text || '未知发件人'),
-                  subject: escapeJson(mail.subject || '无主题'),
-                  text: escapeJson(mail.text || ''),
-                  html: mail.html || `<p>${escapeHtml(mail.text || '').replace(/\n/g, '<br>')}</p>`,
-                  date: mail.date || new Date().toISOString(),
-                  folderSource: '垃圾箱',
-                  verifyCode: getVerifyCodeFromEmail({ text: mail.text, html: mail.html }, mail.subject)
-                };
-                r();
-              });
-            });
-          }
-        } catch { }
-
-        imap.end();
-        resolve(getLatestEmail(inboxEmail, junkEmail));
-      } catch {
-        imap.end();
-        resolve(null);
-      }
+      Promise.all([
+        readBox('INBOX', '收件箱'),
+        readBox('Junk', '垃圾箱')
+      ]).then(([inboxRes, junkRes]) => {
+        inboxEmail = inboxRes;
+        junkEmail = junkRes;
+        finish();
+      }).catch(() => finish());
     });
-    imap.once('error', () => { imap.end(); resolve(null); });
     imap.connect();
   });
 }
 
-// 生成IMAP认证字符串
 const generateAuthString = (user, accessToken) => {
   const authString = `user=${user}\x01auth=Bearer ${accessToken}\x01\x01`;
   return Buffer.from(authString).toString('base64');
 };
 
-// ===================== 主入口：优先IMAP，失败重试1次，再新GR → 老GR =====================
+// ===================== 主入口：单次IMAP，无重试 =====================
 module.exports = async (req, res) => {
   try {
     if (!CONFIG.SUPPORTED_METHODS.includes(req.method)) {
@@ -351,54 +333,37 @@ module.exports = async (req, res) => {
 
     let mail = null;
     let imapToken = null;
-
-    // 第一步：IMAP 第一次尝试
-    console.log("🔹 首次尝试IMAP取件");
     try {
       imapToken = await getImapToken(refresh_token, client_id);
+    } catch (e) {
+      console.log("IMAP Token获取失败，直接走Graph");
+    }
+
+    // 仅单次IMAP，移除重试逻辑
+    if (imapToken) {
+      console.log("🔹 尝试IMAP取件");
       const imapConfig = { ...CONFIG.IMAP_CONFIG, user: email, xoauth2: generateAuthString(email, imapToken) };
       mail = await get_dual_folder_latest_email_imap(imapConfig);
-    } catch (e) {
-      console.log("🔹 首次IMAP失败：", e.message);
     }
 
-    // IMAP为空/报错，重试一次IMAP
+    // IMAP无结果，切换新Graph
     if (!mail) {
-      console.log("🔹 IMAP无结果，重试一次IMAP");
-      try {
-        imapToken = await getImapToken(refresh_token, client_id);
-        const imapConfig = { ...CONFIG.IMAP_CONFIG, user: email, xoauth2: generateAuthString(email, imapToken) };
-        mail = await get_dual_folder_latest_email_imap(imapConfig);
-      } catch (e) {
-        console.log("🔹 重试IMAP依旧失败：", e.message);
-      }
-    }
-
-    // IMAP两次都失败，走新Graph
-    if (!mail) {
-      console.log("🔹 IMAP两次失败，切换新Graph取件");
+      console.log("🔹 IMAP无邮件，切换新Graph");
       const token = await getNewGrToken(refresh_token, client_id);
-      if (token) {
-        mail = await get_dual_folder_latest_email_graph(token);
-      }
+      if (token) mail = await get_dual_folder_latest_email_graph(token);
     }
-
-    // 新Graph失败，走老Graph兜底
+    // 新Graph失败，切换老Graph
     if (!mail) {
-      console.log("🔹 新Graph失败，切换老Graph取件");
+      console.log("🔹 新Graph失败，切换老Graph");
       const token = await getOldGrToken(refresh_token, client_id);
-      if (token) {
-        mail = await get_dual_folder_latest_email_graph(token);
-      }
+      if (token) mail = await get_dual_folder_latest_email_graph(token);
     }
 
-    // 返回结果
     if (mail) {
       return response_type === 'html'
         ? res.send(generateEmailHtml(mail))
         : res.json({ code: 200, message: '成功', data: [mail] });
     }
-
     return res.status(200).json({ code: 2001, message: '无邮件', data: null });
 
   } catch (error) {
