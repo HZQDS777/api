@@ -1,19 +1,28 @@
 const Imap = require('node-imap');
-const simpleParser = require("mailparser").simpleParser;
+const { simpleParser } = require("mailparser");
+const { setTimeout } = require('timers/promises');
 
 function generateEmailsHtml(emailsData) {
-  const escapeHtml = (str) => str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+  const escapeHtml = (str) => {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
 
   const renderEmailItem = (email, index) => {
     const { send, subject, text, html: emailHtml, date } = email;
     const escapedText = escapeHtml(text || '无内容');
     const escapedHtml = emailHtml || `<p>${escapedText.replace(/\n/g, '<br>')}</p>`;
-    const formattedDate = new Date(date).toLocaleString() || '未知日期';
+    let formattedDate = '未知日期';
+    if (date) {
+      try {
+        formattedDate = new Date(date).toLocaleString('zh-CN');
+      } catch (e) {}
+    }
 
     return `
       <div class="email-item" id="email-${index}">
@@ -32,7 +41,9 @@ function generateEmailsHtml(emailsData) {
     `;
   };
 
-  const emailsHtml = emailsData.map((email, index) => renderEmailItem(email, index)).join('');
+  const emailsHtml = Array.isArray(emailsData)
+    ? emailsData.map((email, index) => renderEmailItem(email, index)).join('')
+    : '';
 
   return `
     <!DOCTYPE html>
@@ -49,9 +60,9 @@ function generateEmailsHtml(emailsData) {
           .email-item { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
           .email-header { padding: 15px 20px; background: #f5fafe; cursor: pointer; border-bottom: 1px solid #eee; }
           .email-subject { color: #2d3748; margin-bottom: 8px; font-size: 1.1em; }
-          .email-meta { display: flex; gap: 20px; color: #4a5568; font-size: 0.9em; }
+          .email-meta { display: flex; gap: 20px; color: #4a5568; font-size: 0.9em; flex-wrap: wrap; }
           .toggle-btn { margin-left: auto; color: #4299e1; font-weight: 500; }
-          .email-content { padding: 20px; color: #1a202c; line-height: 1.8; }
+          .email-content { padding: 20px; color: #1a202c; line-height: 1.8; word-break: break-all; }
           .email-content p { margin-bottom: 10px; }
           .email-content img { max-width: 100%; height: auto; }
           @media (max-width: 768px) {
@@ -63,6 +74,7 @@ function generateEmailsHtml(emailsData) {
           function toggleEmailContent(index) {
             const content = document.getElementById(\`content-\${index}\`);
             const btn = document.querySelector(\`#email-\${index} .toggle-btn\`);
+            if (!content || !btn) return;
             if (content.style.display === 'none') {
               content.style.display = 'block';
               btn.textContent = '收起';
@@ -83,209 +95,276 @@ function generateEmailsHtml(emailsData) {
   `;
 }
 
-// IMAP 获取Token 专用Scope
+// IMAP Token
 async function get_imap_token(refresh_token, client_id) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  try {
     const response = await fetch('https://login.microsoftonline.com/consumers/oauth2/v2.0/token', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({
-            'client_id': client_id,
-            'grant_type': 'refresh_token',
-            'refresh_token': refresh_token,
-            'scope': 'https://outlook.office.com/IMAP.AccessAsUser.All offline_access'
-        }).toString()
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        'client_id': client_id,
+        'grant_type': 'refresh_token',
+        'refresh_token': refresh_token,
+        'scope': 'https://outlook.office.com/IMAP.AccessAsUser.All offline_access'
+      }).toString()
     });
-
-    if (!response.ok) throw new Error('IMAP token get fail');
+    clearTimeout(timer);
+    if (!response.ok) throw new Error('IMAP token 获取失败');
     const data = await response.json();
     return data.access_token;
+  } catch (e) {
+    clearTimeout(timer);
+    return null;
+  }
 }
 
 const generateAuthString = (user, accessToken) => {
-    const authString = `user=${user}\x01auth=Bearer ${accessToken}\x01\x01`;
-    return Buffer.from(authString).toString('base64');
+  const authString = `user=${user}\x01auth=Bearer ${accessToken}\x01\x01`;
+  return Buffer.from(authString).toString('base64');
 }
 
-// 1. 新GR：User.Read Mail.Read offline_access
+// 新版 Graph Token
 async function get_new_gr_token(refresh_token, client_id) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  try {
     const response = await fetch('https://login.microsoftonline.com/consumers/oauth2/v2.0/token', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({
-            'client_id': client_id,
-            'grant_type': 'refresh_token',
-            'refresh_token': refresh_token,
-            'scope': 'User.Read Mail.Read offline_access'
-        }).toString()
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        'client_id': client_id,
+        'grant_type': 'refresh_token',
+        'refresh_token': refresh_token,
+        'scope': 'User.Read Mail.Read offline_access'
+      }).toString()
     });
+    clearTimeout(timer);
     if (!response.ok) return null;
     const data = await response.json();
-    return data.access_token ? data.access_token : null;
+    return data.access_token || null;
+  } catch {
+    clearTimeout(timer);
+    return null;
+  }
 }
 
-// 2. 老GR：https://graph.microsoft.com/.default
+// 旧版 Graph Token
 async function get_old_gr_token(refresh_token, client_id) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  try {
     const response = await fetch('https://login.microsoftonline.com/consumers/oauth2/v2.0/token', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({
-            'client_id': client_id,
-            'grant_type': 'refresh_token',
-            'refresh_token': refresh_token,
-            'scope': 'https://graph.microsoft.com/.default'
-        }).toString()
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        'client_id': client_id,
+        'grant_type': 'refresh_token',
+        'refresh_token': refresh_token,
+        'scope': 'https://graph.microsoft.com/.default'
+      }).toString()
     });
+    clearTimeout(timer);
     if (!response.ok) return null;
     const data = await response.json();
-    return data.access_token ? data.access_token : null;
+    return data.access_token || null;
+  } catch {
+    clearTimeout(timer);
+    return null;
+  }
 }
 
-// Graph 拉取邮件
+// Graph 获取邮件（修复top上限100）
 async function get_emails(access_token, mailbox) {
-    if (!access_token) return null;
-    try {
-        const response = await fetch(`https://graph.microsoft.com/v1.0/me/mailFolders/${mailbox}/messages?$top=10000`, {
-            method: 'GET',
-            headers: {
-                "Authorization": `Bearer ${access_token}`
-            },
-        });
-        if (!response.ok) return null;
-        const responseData = await response.json();
-        const emails = responseData.value;
-        if (!emails) return null;
+  if (!access_token) return null;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10000);
+  try {
+    const response = await fetch(`https://graph.microsoft.com/v1.0/me/mailFolders/${mailbox}/messages?$top=100`, {
+      method: 'GET',
+      signal: controller.signal,
+      headers: {
+        "Authorization": `Bearer ${access_token}`
+      },
+    });
+    clearTimeout(timer);
+    if (!response.ok) return null;
+    const responseData = await response.json();
+    const emails = responseData.value;
+    if (!Array.isArray(emails)) return null;
 
-        return emails.map(item => ({
-            send: item.from?.emailAddress?.address || '未知',
-            subject: item.subject || '无主题',
-            text: item.bodyPreview || '',
-            html: item.body?.content || '',
-            date: item.createdDateTime,
-        }));
-    } catch (error) {
-        return null;
+    return emails.map(item => ({
+      send: item.from?.emailAddress?.address || '未知',
+      subject: item.subject || '无主题',
+      text: item.bodyPreview || '',
+      html: item.body?.content || '',
+      date: item.createdDateTime,
+    }));
+  } catch (error) {
+    clearTimeout(timer);
+    return null;
+  }
+}
+
+// 封装 IMAP 获取邮件 Promise 化，解决回调异步混乱
+async function fetchImapMails(emailAddr, mailboxName, xoauthBase64) {
+  return new Promise((resolve, reject) => {
+    const emailList = [];
+    let finishedCount = 0;
+    let totalMsgCount = 0;
+    let isDone = false;
+
+    const imap = new Imap({
+      user: emailAddr,
+      xoauth2: xoauthBase64,
+      host: 'outlook.office365.com',
+      port: 993,
+      tls: true,
+      tlsOptions: { rejectUnauthorized: false }
+    });
+
+    function safeClose(err) {
+      if (isDone) return;
+      isDone = true;
+      imap.end();
+      if (err) reject(err);
+      else resolve(emailList);
     }
+
+    imap.once('error', err => safeClose(err));
+    imap.once('end', () => safeClose());
+
+    imap.once("ready", () => {
+      imap.openBox(mailboxName, true, (err) => {
+        if (err) return safeClose(err);
+        imap.search(["ALL"], (err, results) => {
+          if (err) return safeClose(err);
+          totalMsgCount = results.length;
+          if (totalMsgCount === 0) return safeClose();
+
+          const fetchStream = imap.fetch(results, { bodies: "" });
+          fetchStream.on("message", (msg) => {
+            msg.on("body", (stream) => {
+              simpleParser(stream, (err, mail) => {
+                if (!err) {
+                  emailList.push({
+                    send: mail.from?.text || '未知',
+                    subject: mail.subject || '无主题',
+                    text: mail.text || '',
+                    html: mail.html || '',
+                    date: mail.date || new Date()
+                  });
+                }
+                finishedCount++;
+                if (finishedCount >= totalMsgCount) {
+                  safeClose();
+                }
+              });
+            });
+          });
+          fetchStream.once("error", err => safeClose(err));
+          fetchStream.once("end", () => {
+            // 防止解析慢，超时兜底3秒
+            setTimeout(() => safeClose(), 3000);
+          });
+        });
+      });
+    });
+    imap.connect();
+  });
 }
 
 module.exports = async (req, res) => {
-    const { password } = req.method === 'GET' ? req.query : req.body;
-    const expectedPassword = process.env.PASSWORD;
+  // 防重复返回
+  let responded = false;
+  const sendJson = (code, data) => {
+    if (responded) return;
+    responded = true;
+    res.status(code).json(data);
+  };
+  const sendHtml = (html) => {
+    if (responded) return;
+    responded = true;
+    res.send(html);
+  };
 
-    if (password !== expectedPassword && expectedPassword) {
-        return res.status(401).json({
-            error: 'Authentication failed'
-        });
+  const { password } = req.method === 'GET' ? req.query : req.body;
+  const expectedPassword = process.env.PASSWORD;
+
+  if (expectedPassword && password !== expectedPassword) {
+    return sendJson(401, { error: 'Authentication failed' });
+  }
+
+  const params = req.method === 'GET' ? req.query : req.body;
+  let { refresh_token, client_id, email, mailbox, response_type = 'json' } = params;
+
+  if (!refresh_token || !client_id || !email || !mailbox) {
+    return sendJson(400, { error: 'Missing required parameters' });
+  }
+  if (!['json', 'html'].includes(response_type)) {
+    return sendJson(400, { error: 'Invalid response_type' });
+  }
+
+  // 文件夹名称兼容转换
+  let targetMailbox = mailbox;
+  let graphMailbox = mailbox;
+  if (targetMailbox === 'INBOX') targetMailbox = 'INBOX';
+  if (targetMailbox === 'Junk') targetMailbox = 'Junk';
+  if (graphMailbox === 'INBOX') graphMailbox = 'inbox';
+  if (graphMailbox === 'Junk') graphMailbox = 'junkemail';
+
+  try {
+    // ========== 优先级调整：优先 IMAP，失败再走Graph ==========
+    let mailList = null;
+
+    // 第一步：尝试 IMAP
+    const imapToken = await get_imap_token(refresh_token, client_id);
+    if (imapToken) {
+      const authStr = generateAuthString(email, imapToken);
+      try {
+        mailList = await fetchImapMails(email, targetMailbox, authStr);
+      } catch (imapErr) {
+        mailList = null;
+      }
     }
 
-    const params = req.method === 'GET' ? req.query : req.body;
-    let { refresh_token, client_id, email, mailbox, response_type = 'json' } = params;
-
-    if (!refresh_token || !client_id || !email || !mailbox) {
-        return res.status(400).json({ error: 'Missing required parameters' });
-    }
-    if (!['json', 'html'].includes(response_type)) {
-        return res.status(400).json({ error: 'Invalid response_type' });
-    }
-
-    // 文件夹兼容
-    let mb = mailbox;
-    if (mb === 'INBOX') mb = 'inbox';
-    if (mb === 'Junk') mb = 'junkemail';
-
-    try {
-        // 第一步：尝试 新GR
-        let token = await get_new_gr_token(refresh_token, client_id);
-        if (token) {
-            let list = await get_emails(token, mb);
-            if (list) {
-                if (response_type === 'html') {
-                    return res.send(generateEmailsHtml(list));
-                } else {
-                    return res.json(list);
-                }
-            }
+    // IMAP 无结果再走 Graph 两套兜底
+    if (!mailList || !Array.isArray(mailList)) {
+      // 新Graph
+      let grToken = await get_new_gr_token(refresh_token, client_id);
+      if (grToken) {
+        mailList = await get_emails(grToken, graphMailbox);
+      }
+      // 新Graph失败走旧Graph
+      if (!mailList || !Array.isArray(mailList)) {
+        grToken = await get_old_gr_token(refresh_token, client_id);
+        if (grToken) {
+          mailList = await get_emails(grToken, graphMailbox);
         }
-
-        // 第二步：尝试 老GR
-        token = await get_old_gr_token(refresh_token, client_id);
-        if (token) {
-            let list = await get_emails(token, mb);
-            if (list) {
-                if (response_type === 'html') {
-                    return res.send(generateEmailsHtml(list));
-                } else {
-                    return res.json(list);
-                }
-            }
-        }
-
-        // 第三步：全部失败 走 IMAP 兜底
-        const imapToken = await get_imap_token(refresh_token, client_id);
-        const authString = generateAuthString(email, imapToken);
-        const emailList = [];
-
-        const imap = new Imap({
-            user: email,
-            xoauth2: authString,
-            host: 'outlook.office365.com',
-            port: 993,
-            tls: true,
-            tlsOptions: { rejectUnauthorized: false }
-        });
-
-        imap.once("ready", async () => {
-            try {
-                await new Promise((resolve, reject) => {
-                    imap.openBox(mailbox, true, (err) => err ? reject(err) : resolve());
-                });
-                const results = await new Promise((resolve, reject) => {
-                    imap.search(["ALL"], (err, r) => err ? reject(err) : resolve(r));
-                });
-
-                const f = imap.fetch(results, { bodies: "" });
-                f.on("message", (msg) => {
-                    msg.on("body", (stream) => {
-                        simpleParser(stream, (err, mail) => {
-                            if (!err) {
-                                emailList.push({
-                                    send: mail.from.text,
-                                    subject: mail.subject,
-                                    text: mail.text,
-                                    html: mail.html,
-                                    date: mail.date,
-                                });
-                            }
-                        });
-                    });
-                });
-                f.once("end", () => imap.end());
-            } catch (err) {
-                imap.end();
-                res.status(500).json({ error: err.message });
-            }
-        });
-
-        imap.once('error', (err) => {
-            res.status(500).json({ error: err.message });
-        });
-
-        imap.once('end', () => {
-            if (response_type === 'html') {
-                res.send(generateEmailsHtml(emailList));
-            } else {
-                res.json(emailList);
-            }
-        });
-
-        imap.connect();
-
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+      }
     }
+
+    // 兜底空数组
+    if (!Array.isArray(mailList)) mailList = [];
+
+    // 返回对应格式
+    if (response_type === 'html') {
+      return sendHtml(generateEmailsHtml(mailList));
+    } else {
+      return sendJson(200, mailList);
+    }
+
+  } catch (error) {
+    sendJson(500, { error: error.message });
+  }
 };
