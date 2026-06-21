@@ -4,7 +4,7 @@ const simpleParser = require("mailparser").simpleParser;
 // ===================== 全局配置与工具函数 =====================
 const CONFIG = {
   OAUTH_TOKEN_URL: 'https://login.microsoftonline.com/consumers/oauth2/v2.0/token',
-  GRAPH_API_BASE_URL: 'https://graph.microsoft.com/v1.0',
+  GRAPH_API_BASE_URL: 'https://graph.microsoft.com/v1.0/me/mailFolders',
   IMAP_CONFIG: {
     host: 'outlook.office365.com',
     port: 993,
@@ -40,9 +40,10 @@ const CONFIG = {
   }
 };
 
-// 修复scope：补齐openid email profile，删除无效老GR
+// 严格分3路：新GR / 老GR / IMAP 独立Scope
 const SCOPE = {
-  NEW_GR: "openid email profile User.Read Mail.Read offline_access",
+  NEW_GR: "User.Read Mail.Read offline_access",
+  OLD_GR: "https://graph.microsoft.com/.default",
   IMAP: "https://outlook.office.com/IMAP.AccessAsUser.All offline_access"
 };
 
@@ -81,7 +82,26 @@ async function getNewGrToken(refresh_token, client_id) {
   }
 }
 
-// 移除完全无效的getOldGrToken函数
+// 单独获取 老GR Token
+async function getOldGrToken(refresh_token, client_id) {
+  try {
+    const res = await fetchWithTimeout(CONFIG.OAUTH_TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id,
+        grant_type: 'refresh_token',
+        refresh_token,
+        scope: SCOPE.OLD_GR
+      }).toString()
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.access_token || null;
+  } catch (e) {
+    return null;
+  }
+}
 
 // 单独获取 IMAP Token
 async function getImapToken(refresh_token, client_id) {
@@ -199,39 +219,38 @@ function generateEmailHtml(emailData) {
   return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${escapeHtml(subject || '无主题邮件')}</title></head><body style="font-family:system-ui;background:#f5f5f5;margin:0;padding:20px"><div style="max-width:800px;margin:0 auto;background:white;padding:30px;border-radius:8px;box-shadow:0 2px 10px #0000001a"><div style="margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid #eee"><h1 style="margin:0 0 15px;color:#2d3748">${escapeHtml(subject || '无主题')}</h1><div style="color:#4a5568;font-size:.9em"><span><strong>发件人：</strong>${escapeHtml(send || '未知发件人')}</span><span><strong>发送日期：</strong>${new Date(date).toLocaleString() || '未知日期'}</span><div style="margin-top:10px;padding:10px;background:#fef7fb;border-left:3px solid #e53e3e"><strong>提取的6位验证码：</strong>${codeDisplay}</div></div></div><div style="color:#1a202c">${escapedHtml}</div></div></body></html>`;
 }
 
-// 重写Graph取件，改用个人账户兼容接口
-async function get_dual_folder_latest_email_graph(access_token) {
+async function get_single_folder_email(access_token, mailbox) {
   try {
-    const url = `${CONFIG.GRAPH_API_BASE_URL}/me/messages?$orderby=receivedDateTime desc&$top=10&$expand=body`;
+    const url = `${CONFIG.GRAPH_API_BASE_URL}/${mailbox}/messages?$top=1&$orderby=receivedDateTime desc`;
     const response = await fetchWithTimeout(url, {
       method: 'GET',
       headers: { Authorization: `Bearer ${access_token}` }
     });
     if (!response.ok) return null;
     const responseData = await response.json();
-    const list = responseData.value;
-    if (!Array.isArray(list) || list.length === 0) return null;
-
-    // 遍历筛选收件箱/垃圾箱
-    for (const email of list) {
-      const folderId = (email.parentFolderId || '').toLowerCase();
-      if (!folderId.includes('inbox') && !folderId.includes('junk')) continue;
-
-      const verifyCode = getVerifyCodeFromEmail({ text: email.bodyPreview, html: email.body?.content }, email.subject);
-      return {
-        send: email.from?.emailAddress?.address || '未知发件人',
-        subject: email.subject || '无主题',
-        text: email.bodyPreview || '',
-        html: email.body?.content || '',
-        date: email.receivedDateTime || new Date().toISOString(),
-        folderSource: folderId.includes('junk') ? '垃圾箱' : '收件箱',
-        verifyCode
-      };
-    }
-    return null;
+    const email = responseData.value?.[0];
+    if (!email) return null;
+    const verifyCode = getVerifyCodeFromEmail({ text: email.bodyPreview, html: email.body?.content }, email.subject);
+    return {
+      send: email.from?.emailAddress?.address || '未知发件人',
+      subject: email.subject || '无主题',
+      text: email.bodyPreview || '',
+      html: email.body?.content || '',
+      date: email.createdDateTime || new Date().toISOString(),
+      folderSource: CONFIG.TARGET_FOLDERS.chineseName[mailbox] || '未知文件夹',
+      verifyCode
+    };
   } catch (error) {
     return null;
   }
+}
+
+async function get_dual_folder_latest_email_graph(access_token) {
+  const [inbox, junk] = await Promise.all([
+    get_single_folder_email(access_token, 'inbox'),
+    get_single_folder_email(access_token, 'junkemail')
+  ]);
+  return getLatestEmail(inbox, junk);
 }
 
 async function get_dual_folder_latest_email_imap(imapConfig) {
@@ -309,7 +328,7 @@ const generateAuthString = (user, accessToken) => {
   return Buffer.from(authString).toString('base64');
 };
 
-// ===================== 主入口：仅新GR → IMAP（删掉老GR无效分支） =====================
+// ===================== 主入口：新GR → 老GR → IMAP =====================
 module.exports = async (req, res) => {
   try {
     if (!CONFIG.SUPPORTED_METHODS.includes(req.method)) {
@@ -340,9 +359,18 @@ module.exports = async (req, res) => {
       mail = await get_dual_folder_latest_email_graph(token);
     }
 
-    // GR失败才走IMAP兜底
+    // 第二步：新GR失败，尝试 老GR
     if (!mail) {
-      console.log("🔹 GR无数据，降级IMAP取件");
+      console.log("🔹 新GR失败，尝试老GR取件");
+      token = await getOldGrToken(refresh_token, client_id);
+      if (token) {
+        mail = await get_dual_folder_latest_email_graph(token);
+      }
+    }
+
+    // 第三步：GR都失败，兜底 IMAP
+    if (!mail) {
+      console.log("🔹 老GR失败，降级IMAP取件");
       try {
         const imapToken = await getImapToken(refresh_token, client_id);
         const imapConfig = { ...CONFIG.IMAP_CONFIG, user: email, xoauth2: generateAuthString(email, imapToken) };
