@@ -10,8 +10,8 @@ const CONFIG = {
     port: 993,
     tls: true,
     tlsOptions: { rejectUnauthorized: false },
-    connTimeout: 10000,
-    authTimeout: 10000
+    connTimeout: 7000,
+    authTimeout: 7000
   },
   MAILBOX_MAP: {
     '收件箱': 'inbox',
@@ -25,7 +25,7 @@ const CONFIG = {
     '垃圾邮件': 'junkemail',
     'junk': 'junkemail'
   },
-  REQUEST_TIMEOUT: 10000,
+  REQUEST_TIMEOUT: 7000,
   SUPPORTED_METHODS: ['GET', 'POST'],
   REQUIRED_PARAMS: ['refresh_token', 'client_id', 'email', 'mailbox'],
   TARGET_FOLDERS: {
@@ -40,29 +40,38 @@ const CONFIG = {
   }
 };
 
-// 严格分3路：新GR / 老GR / IMAP 独立Scope
 const SCOPE = {
   NEW_GR: "User.Read Mail.Read offline_access",
   OLD_GR: "https://graph.microsoft.com/.default",
   IMAP: "https://outlook.office.com/IMAP.AccessAsUser.All offline_access"
 };
 
-// 请求超时封装
-async function fetchWithTimeout(url, options = {}, timeout = CONFIG.REQUEST_TIMEOUT) {
+// 工具：带超时Promise包装
+function withTimeout(promise, ms, errMsg = "操作超时") {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(errMsg)), ms))
+  ]);
+}
+
+// 请求超时封装（支持外部传入signal用于主动取消）
+async function fetchWithTimeout(url, options = {}, timeout = CONFIG.REQUEST_TIMEOUT, externalSignal) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
+  if (externalSignal) {
+    externalSignal.addEventListener('abort', () => controller.abort());
+  }
   try {
     const response = await fetch(url, { ...options, signal: controller.signal });
     clearTimeout(timeoutId);
     return response;
   } catch (error) {
     clearTimeout(timeoutId);
-    throw new Error(error.name === "AbortError" ? "请求超时（超过10秒）" : error.message);
+    throw new Error(error.name === "AbortError" ? "请求已取消/超时" : error.message);
   }
 }
 
-// 单独获取 新GR Token
-async function getNewGrToken(refresh_token, client_id) {
+async function getNewGrToken(refresh_token, client_id, signal) {
   try {
     const res = await fetchWithTimeout(CONFIG.OAUTH_TOKEN_URL, {
       method: 'POST',
@@ -73,7 +82,7 @@ async function getNewGrToken(refresh_token, client_id) {
         refresh_token,
         scope: SCOPE.NEW_GR
       }).toString()
-    });
+    }, CONFIG.REQUEST_TIMEOUT, signal);
     if (!res.ok) return null;
     const data = await res.json();
     return data.access_token || null;
@@ -82,8 +91,7 @@ async function getNewGrToken(refresh_token, client_id) {
   }
 }
 
-// 单独获取 老GR Token
-async function getOldGrToken(refresh_token, client_id) {
+async function getOldGrToken(refresh_token, client_id, signal) {
   try {
     const res = await fetchWithTimeout(CONFIG.OAUTH_TOKEN_URL, {
       method: 'POST',
@@ -94,7 +102,7 @@ async function getOldGrToken(refresh_token, client_id) {
         refresh_token,
         scope: SCOPE.OLD_GR
       }).toString()
-    });
+    }, CONFIG.REQUEST_TIMEOUT, signal);
     if (!res.ok) return null;
     const data = await res.json();
     return data.access_token || null;
@@ -103,7 +111,6 @@ async function getOldGrToken(refresh_token, client_id) {
   }
 }
 
-// 单独获取 IMAP Token
 async function getImapToken(refresh_token, client_id) {
   const res = await fetchWithTimeout(CONFIG.OAUTH_TOKEN_URL, {
     method: 'POST',
@@ -120,7 +127,6 @@ async function getImapToken(refresh_token, client_id) {
   return data.access_token;
 }
 
-// HTML特殊字符转义
 function escapeHtml(str) {
   if (!str) return '';
   return str
@@ -131,13 +137,11 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-// JSON响应特殊字符转义
 function escapeJson(str) {
   if (!str) return str;
   return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
 }
 
-// 对比两封邮件，返回最新的一封
 function getLatestEmail(email1, email2) {
   if (!email1) return email2;
   if (!email2) return email1;
@@ -146,7 +150,6 @@ function getLatestEmail(email1, email2) {
   return time1 > time2 ? email1 : email2;
 }
 
-// 参数校验
 function validateParams(params) {
   const { email } = params;
   const emailReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -156,7 +159,7 @@ function validateParams(params) {
   return null;
 }
 
-// ===================== 【已修复】验证码提取（强制优先6位） =====================
+// ===================== 验证码提取 =====================
 function preprocessText(rawText) {
   if (!rawText) return '';
   const withoutHtml = rawText.replace(/<[^>]+>/g, ' ');
@@ -219,13 +222,13 @@ function generateEmailHtml(emailData) {
   return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${escapeHtml(subject || '无主题邮件')}</title></head><body style="font-family:system-ui;background:#f5f5f5;margin:0;padding:20px"><div style="max-width:800px;margin:0 auto;background:white;padding:30px;border-radius:8px;box-shadow:0 2px 10px #0000001a"><div style="margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid #eee"><h1 style="margin:0 0 15px;color:#2d3748">${escapeHtml(subject || '无主题')}</h1><div style="color:#4a5568;font-size:.9em"><span><strong>发件人：</strong>${escapeHtml(send || '未知发件人')}</span><span><strong>发送日期：</strong>${new Date(date).toLocaleString() || '未知日期'}</span><div style="margin-top:10px;padding:10px;background:#fef7fb;border-left:3px solid #e53e3e"><strong>提取的6位验证码：</strong>${codeDisplay}</div></div></div><div style="color:#1a202c">${escapedHtml}</div></div></body></html>`;
 }
 
-async function get_single_folder_email(access_token, mailbox) {
+async function get_single_folder_email(access_token, mailbox, signal) {
   try {
     const url = `${CONFIG.GRAPH_API_BASE_URL}/${mailbox}/messages?$top=1&$orderby=receivedDateTime desc`;
     const response = await fetchWithTimeout(url, {
       method: 'GET',
       headers: { Authorization: `Bearer ${access_token}` }
-    });
+    }, CONFIG.REQUEST_TIMEOUT, signal);
     if (!response.ok) return null;
     const responseData = await response.json();
     const email = responseData.value?.[0];
@@ -245,90 +248,76 @@ async function get_single_folder_email(access_token, mailbox) {
   }
 }
 
-async function get_dual_folder_latest_email_graph(access_token) {
+async function get_dual_folder_latest_email_graph(access_token, signal) {
   const [inbox, junk] = await Promise.all([
-    get_single_folder_email(access_token, 'inbox'),
-    get_single_folder_email(access_token, 'junkemail')
+    get_single_folder_email(access_token, 'inbox', signal),
+    get_single_folder_email(access_token, 'junkemail', signal)
   ]);
   return getLatestEmail(inbox, junk);
 }
 
-async function get_dual_folder_latest_email_imap(imapConfig) {
-  const imap = new Imap(imapConfig);
-  let inboxEmail = null, junkEmail = null;
-
+async function getImapFolderLatest(imapConn, boxName) {
   return new Promise((resolve) => {
+    imapConn.openBox(boxName, true, async (err) => {
+      if (err) return resolve(null);
+      imapConn.search(['ALL'], (err, ids) => {
+        if (err || !ids.length) return resolve(null);
+        const latestId = ids[ids.length - 1];
+        const fetchReq = imapConn.fetch(latestId, { bodies: '' });
+        fetchReq.on('message', (msg) => {
+          msg.on('body', async (stream) => {
+            try {
+              const mail = await simpleParser(stream);
+              const data = {
+                send: escapeJson(mail.from?.text || '未知发件人'),
+                subject: escapeJson(mail.subject || '无主题'),
+                text: escapeJson(mail.text || ''),
+                html: mail.html || `<p>${escapeHtml(mail.text || '').replace(/\n/g, '<br>')}</p>`,
+                date: mail.date || new Date().toISOString(),
+                folderSource: CONFIG.TARGET_FOLDERS.chineseName[boxName] || boxName,
+                verifyCode: getVerifyCodeFromEmail({ text: mail.text, html: mail.html }, mail.subject)
+              };
+              resolve(data);
+            } catch {
+              resolve(null);
+            }
+          });
+        });
+        fetchReq.on('error', () => resolve(null));
+      });
+    });
+  });
+}
+
+async function get_dual_folder_latest_email_imap(imapConfig) {
+  return withTimeout(new Promise((resolve) => {
+    const imap = new Imap(imapConfig);
     imap.once('ready', async () => {
       try {
-        // 收件箱
-        try {
-          await new Promise(r => imap.openBox('INBOX', true, r));
-          const ids = await new Promise((r, j) => imap.search(['ALL'], (err, r) => err ? j(err) : r(r)));
-          if (ids.length) {
-            const f = imap.fetch(ids.slice(-1), { bodies: '' });
-            await new Promise(r => {
-              f.on('message', async (msg) => {
-                const stream = await new Promise(r => msg.on('body', r));
-                const mail = await simpleParser(stream);
-                inboxEmail = {
-                  send: escapeJson(mail.from?.text || '未知发件人'),
-                  subject: escapeJson(mail.subject || '无主题'),
-                  text: escapeJson(mail.text || ''),
-                  html: mail.html || `<p>${escapeHtml(mail.text || '').replace(/\n/g, '<br>')}</p>`,
-                  date: mail.date || new Date().toISOString(),
-                  folderSource: '收件箱',
-                  verifyCode: getVerifyCodeFromEmail({ text: mail.text, html: mail.html }, mail.subject)
-                };
-                r();
-              });
-            });
-          }
-        } catch { }
-
-        // 垃圾箱
-        try {
-          await new Promise(r => imap.openBox('Junk', true, r));
-          const ids = await new Promise((r, j) => imap.search(['ALL'], (err, r) => err ? j(err) : r(r)));
-          if (ids.length) {
-            const f = imap.fetch(ids.slice(-1), { bodies: '' });
-            await new Promise(r => {
-              f.on('message', async (msg) => {
-                const stream = await new Promise(r => msg.on('body', r));
-                const mail = await simpleParser(stream);
-                junkEmail = {
-                  send: escapeJson(mail.from?.text || '未知发件人'),
-                  subject: escapeJson(mail.subject || '无主题'),
-                  text: escapeJson(mail.text || ''),
-                  html: mail.html || `<p>${escapeHtml(mail.text || '').replace(/\n/g, '<br>')}</p>`,
-                  date: mail.date || new Date().toISOString(),
-                  folderSource: '垃圾箱',
-                  verifyCode: getVerifyCodeFromEmail({ text: mail.text, html: mail.html }, mail.subject)
-                };
-                r();
-              });
-            });
-          }
-        } catch { }
-
+        const taskInbox = getImapFolderLatest(imap, "INBOX");
+        const taskJunk = getImapFolderLatest(imap, "Junk");
+        const [inboxMail, junkMail] = await Promise.all([taskInbox, taskJunk]);
         imap.end();
-        resolve(getLatestEmail(inboxEmail, junkEmail));
-      } catch {
+        resolve(getLatestEmail(inboxMail, junkMail));
+      } catch (err) {
         imap.end();
         resolve(null);
       }
     });
-    imap.once('error', () => { imap.end(); resolve(null); });
+    imap.once('error', () => {
+      imap.end();
+      resolve(null);
+    });
     imap.connect();
-  });
+  }), 9000, "IMAP整体连接超时");
 }
 
-// 生成IMAP认证字符串
 const generateAuthString = (user, accessToken) => {
   const authString = `user=${user}\x01auth=Bearer ${accessToken}\x01\x01`;
   return Buffer.from(authString).toString('base64');
 };
 
-// ===================== 主入口：新GR → 老GR → IMAP =====================
+// ===================== 主入口【核心改动：新GR/老GR并行，任一成功立刻终止】 =====================
 module.exports = async (req, res) => {
   try {
     if (!CONFIG.SUPPORTED_METHODS.includes(req.method)) {
@@ -350,35 +339,51 @@ module.exports = async (req, res) => {
     if (paramErr) return res.status(400).json({ code: 4002, error: paramErr.message });
 
     let mail = null;
-    let token = null;
+    const abortCtrl = new AbortController();
 
-    // 第一步：尝试 新GR
-    console.log("🔹 尝试新GR取件");
-    token = await getNewGrToken(refresh_token, client_id);
-    if (token) {
-      mail = await get_dual_folder_latest_email_graph(token);
+    // 并行执行新GR、老GR任务
+    const taskNewGR = (async () => {
+      console.log("🔹 并行尝试新GR");
+      const token = await getNewGrToken(refresh_token, client_id, abortCtrl.signal);
+      if (!token) return null;
+      return get_dual_folder_latest_email_graph(token, abortCtrl.signal);
+    })();
+
+    const taskOldGR = (async () => {
+      console.log("🔹 并行尝试老GR");
+      const token = await getOldGrToken(refresh_token, client_id, abortCtrl.signal);
+      if (!token) return null;
+      return get_dual_folder_latest_email_graph(token, abortCtrl.signal);
+    })();
+
+    // 谁先拿到有效邮件，立刻终止另一个请求
+    const winner = await Promise.race([
+      taskNewGR.then(m => ({ source: "newGR", mail: m })),
+      taskOldGR.then(m => ({ source: "oldGR", mail: m }))
+    ]);
+
+    if (winner.mail) {
+      mail = winner.mail;
+      abortCtrl.abort(); // 取消另一路还在跑的请求
+      console.log(`✅ ${winner.source}成功获取邮件，终止另一路Graph请求`);
+    } else {
+      // 两路GR都无结果，等待剩余任务确认，再走IMAP兜底
+      const [mailNew, mailOld] = await Promise.all([taskNewGR, taskOldGR]);
+      mail = getLatestEmail(mailNew, mailOld);
     }
 
-    // 第二步：新GR失败，尝试 老GR
+    // Graph全部失败才降级IMAP
     if (!mail) {
-      console.log("🔹 新GR失败，尝试老GR取件");
-      token = await getOldGrToken(refresh_token, client_id);
-      if (token) {
-        mail = await get_dual_folder_latest_email_graph(token);
-      }
-    }
-
-    // 第三步：GR都失败，兜底 IMAP
-    if (!mail) {
-      console.log("🔹 老GR失败，降级IMAP取件");
+      console.log("🔹 GR全部失败，降级IMAP取件");
       try {
         const imapToken = await getImapToken(refresh_token, client_id);
         const imapConfig = { ...CONFIG.IMAP_CONFIG, user: email, xoauth2: generateAuthString(email, imapToken) };
         mail = await get_dual_folder_latest_email_imap(imapConfig);
-      } catch (e) { }
+      } catch (e) {
+        console.log("IMAP流程异常", e.message);
+      }
     }
 
-    // 返回结果
     if (mail) {
       return response_type === 'html'
         ? res.send(generateEmailHtml(mail))
