@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>微软长效邮箱管理系统 | </title>
+<title>微软长效邮箱管理系统</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 <style>
@@ -28,7 +28,6 @@ body{
   min-height:100vh;
 }
 .layout{display:flex;min-height:100vh;}
-
 .sidebar{
   width:260px;
   background-color:var(--sidebar-bg);
@@ -77,7 +76,6 @@ body{
   box-shadow:0 4px 12px rgba(22,93,255,0.3);
 }
 .sidebar-menu li a i{font-size:16px;width:20px;text-align:center;}
-
 .main{
   flex:1;
   margin-left:260px;
@@ -101,7 +99,6 @@ body{
   color:var(--text-secondary);
   margin-top:4px;
 }
-
 .card-row{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
@@ -146,7 +143,6 @@ body{
   color:var(--text-primary);
   margin-top:4px;
 }
-
 .module-card{
   background:var(--card-bg);
   border:1px solid var(--border);
@@ -163,7 +159,6 @@ body{
   gap:8px;
 }
 .module-card .card-title i{color:var(--primary);}
-
 .btn{
   padding:8px 16px;
   border-radius:6px;
@@ -182,7 +177,6 @@ body{
 .btn-danger{background:var(--danger);color:#fff;}
 .btn-default{background:#334155;color:var(--text-primary);}
 .btn-sm{padding:6px 12px;font-size:13px;}
-
 .form-input{
   height:36px;
   padding:0 12px;
@@ -210,7 +204,6 @@ body{
 }
 .form-textarea:focus{border-color:var(--primary);}
 .form-input:focus{border-color:var(--primary);}
-
 .table-wrap{overflow-x:auto;}
 .table{
   width:100%;
@@ -229,7 +222,6 @@ body{
   font-weight:500;
 }
 .table tr:hover{background:rgba(255,255,255,0.03);}
-
 .action-bar{
   display:flex;
   flex-wrap:wrap;
@@ -259,7 +251,6 @@ body{
   border-color:var(--primary);
   color:#fff;
 }
-
 .upload-box{
   border:2px dashed var(--border);
   border-radius:8px;
@@ -274,7 +265,6 @@ body{
 }
 .upload-box i{font-size:32px;color:var(--primary);margin-bottom:12px;}
 .upload-box p{color:var(--text-secondary);font-size:14px;}
-
 .loading-overlay{
   position:fixed;
   inset:0;
@@ -292,7 +282,6 @@ body{
   animation:spin 1s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg);}}
-
 .modal{
   position:fixed;
   inset:0;
@@ -313,10 +302,8 @@ body{
 .modal-content h3{margin-bottom:12px;color:var(--text-primary);}
 .modal-content p{color:var(--text-secondary);margin-bottom:20px;}
 .modal-btn-group{display:flex;gap:10px;justify-content:flex-end;}
-
 .content-section{display:none;}
 .content-section.active{display:block;}
-
 .menu-toggle{
   display:none;
   position:fixed;
@@ -338,15 +325,12 @@ body{
   .menu-toggle{display:flex;}
   .card-row{grid-template-columns:1fr;}
 }
-
 ::-webkit-scrollbar{width:6px;height:6px;}
 ::-webkit-scrollbar-thumb{background:#334155;border-radius:3px;}
 ::-webkit-scrollbar-track{background:transparent;}
-
 .password-text{font-family:monospace;}
 .refresh-token{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .remark-cell{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-
 #mail-modal {padding:12px;}
 #mail-modal .modal-content {
   width:95%;
@@ -365,18 +349,28 @@ body{
     max-height:88vh;
   }
 }
+.collapse-body{
+  overflow:hidden;
+  transition:max-height 0.3s ease;
+  max-height:2000px;
+}
+.collapse-body.collapsed{
+  max-height:0;
+}
+.card-title-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
 </style>
 </head>
 <body>
-
 <div class="menu-toggle" id="menu-toggle">
   <i class="fas fa-bars"></i>
 </div>
-
 <div class="loading-overlay" id="loading-overlay">
   <div class="loading-spinner"></div>
 </div>
-
 <div class="layout">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
@@ -388,7 +382,6 @@ body{
       <li><a href="#" data-target="emails"><i class="fas fa-envelope"></i> 邮箱取件管理</a></li>
     </ul>
   </aside>
-
   <main class="main">
     <div id="dashboard" class="content-section active">
       <div class="page-header">
@@ -409,7 +402,6 @@ body{
           <p class="num" id="group-count">1</p>
         </div>
       </div>
-
       <div class="module-card">
         <div class="card-title"><i class="fas fa-lightbulb"></i> 快捷操作</div>
         <div class="action-bar">
@@ -427,30 +419,38 @@ body{
       </div>
 
       <div class="module-card">
-        <div class="card-title"><i class="fas fa-upload"></i> 导入邮箱数据</div>
-        
-        <div style="margin-bottom:16px;">
-          <label style="display:block;margin-bottom:8px;color:var(--text-secondary);">粘贴邮箱文本（一行一条）</label>
-          <textarea class="form-textarea" id="paste-text" placeholder="直接粘贴邮箱数据，格式：邮箱----密码----ClientID----RefreshToken"></textarea>
+        <div class="card-title card-title-row">
+          <span><i class="fas fa-upload"></i> 导入邮箱数据</span>
+          <button class="btn btn-sm btn-default" id="importToggleBtn"><i class="fas fa-chevron-up"></i> 折叠</button>
         </div>
-
-        <div class="upload-box" id="upload-box">
-          <i class="fas fa-cloud-upload-alt"></i>
-          <p>点击或拖拽TXT文件到此处上传</p>
-          <div class="file-info" id="file-info" style="margin-top:10px;color:var(--primary);"></div>
-          <input type="file" id="file-input" accept=".txt" style="display:none;">
+        <div class="collapse-body" id="importBody">
+          <div style="margin-bottom:16px;">
+            <label style="display:block;margin-bottom:8px;color:var(--text-secondary);">粘贴邮箱文本（一行一条）</label>
+            <textarea class="form-textarea" id="paste-text" placeholder="直接粘贴邮箱数据，格式：邮箱----密码----ClientID----RefreshToken"></textarea>
+          </div>
+          <div class="upload-box" id="upload-box">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>点击或拖拽TXT文件到此处上传</p>
+            <div class="file-info" id="file-info" style="margin-top:10px;color:var(--primary);"></div>
+            <input type="file" id="file-input" accept=".txt" style="display:none;">
+          </div>
+          <div class="action-bar" style="margin-top:16px;flex-wrap:wrap;">
+            <input type="password" class="form-input" id="password" placeholder="欢迎使用微软" oninput="setPassword()">
+            <input type="text" class="form-input" id="delimiter" value="----" placeholder="分隔符 例如 ----">
+            <button class="btn btn-primary" onclick="importEmails()"><i class="fas fa-file-import"></i> 导入文件</button>
+            <button class="btn btn-success" onclick="importFromText()"><i class="fas fa-paste"></i> 粘贴导入</button>
+            <button class="btn btn-success" onclick="exportData()"><i class="fas fa-download"></i> 导出TXT</button>
+            <button class="btn btn-danger" onclick="batchDelete()"><i class="fas fa-trash"></i> 批量删除</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteAllEmails()"><i class="fas fa-trash-alt"></i> 清空全部</button>
+          </div>
         </div>
+      </div>
 
-        <div class="action-bar" style="margin-top:16px;flex-wrap:wrap;">
-          <input type="password" class="form-input" id="password" placeholder="欢迎使用微软" oninput="setPassword()">
-          
-          <input type="text" class="form-input" id="delimiter" value="----" placeholder="分隔符 例如 ----">
-          
-          <button class="btn btn-primary" onclick="importEmails()"><i class="fas fa-file-import"></i> 导入文件</button>
-          <button class="btn btn-success" onclick="importFromText()"><i class="fas fa-paste"></i> 粘贴导入</button>
-          <button class="btn btn-success" onclick="exportData()"><i class="fas fa-download"></i> 导出TXT</button>
-          <button class="btn btn-danger" onclick="batchDelete()"><i class="fas fa-trash"></i> 批量删除</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteAllEmails()"><i class="fas fa-trash-alt"></i> 清空全部</button>
+      <div class="module-card">
+        <div class="card-title"><i class="fas fa-search"></i> 搜索取件（收件箱+垃圾箱同时拉取）</div>
+        <div class="action-bar">
+          <input type="text" class="form-input" id="searchFetchInput" placeholder="输入邮箱账号，一键同时拉取收件箱+垃圾箱">
+          <button class="btn btn-primary btn-sm" onclick="searchFetchMail()"><i class="fas fa-bolt"></i> 搜索并取件</button>
         </div>
       </div>
 
@@ -459,12 +459,10 @@ body{
         <div class="action-bar">
           <label style="color:var(--text-secondary);">分组筛选：</label>
           <select class="form-input" id="group-filter" onchange="filterByGroup()"></select>
-
           <label style="color:var(--text-secondary);margin-left:10px;">新增分组：</label>
           <input type="text" class="form-input" id="new-group" placeholder="分组名称">
           <button class="btn btn-primary btn-sm" onclick="createGroup()">创建</button>
           <button class="btn btn-danger btn-sm" onclick="deleteSelectedGroup()">删除分组</button>
-
           <label style="color:var(--text-secondary);margin-left:10px;">批量改分组：</label>
           <select class="form-input" id="batch-group-select"></select>
           <button class="btn btn-success btn-sm" onclick="showBatchGroupConfirm()">应用选中</button>
@@ -478,7 +476,6 @@ body{
           <button class="btn btn-primary btn-sm" onclick="searchEmails()">搜索</button>
           <button class="btn btn-default btn-sm" onclick="clearSearch()">清空</button>
         </div>
-
         <div class="table-wrap">
           <table class="table" id="email-table">
             <thead>
@@ -497,7 +494,6 @@ body{
           </table>
         </div>
         <div class="no-data" id="no-data" style="text-align:center;padding:30px;color:var(--text-secondary);display:none;">暂无邮箱数据</div>
-
         <div class="action-bar" style="justify-content:space-between;margin-top:16px;">
           <div class="pagination" id="pagination"></div>
           <select class="form-input" id="items-per-page" onchange="changeItemsPerPage(this.value)">
@@ -521,6 +517,7 @@ body{
           <h1>邮件列表</h1>
           <p>查看收件箱 / 垃圾箱邮件内容</p>
         </div>
+        <button class="btn btn-default" onclick="backToEmailList()"><i class="fas fa-arrow-left"></i> 返回邮箱列表</button>
       </div>
       <div class="module-card">
         <div class="action-bar">
@@ -532,6 +529,7 @@ body{
           <table class="table" id="mail-table">
             <thead>
               <tr>
+                <th>来源</th>
                 <th>发件人</th>
                 <th>邮件主题</th>
                 <th>日期</th>
@@ -628,14 +626,13 @@ body{
   </div>
 </div>
 
-<!-- API地址展示弹窗 -->
 <div class="modal" id="api-modal">
   <div class="modal-content" style="max-width:95%;width:900px;">
     <h3>API地址生成成功</h3>
     <textarea id="api-url-text" class="form-textarea" style="height:120px;white-space:nowrap;overflow:auto;"></textarea>
     <div class="modal-btn-group">
       <button class="btn btn-default" onclick="copyApiUrl()">复制链接</button>
-  <button class="btn btn-success" onclick="window.open(document.getElementById('api-url-text').value,'_blank')">打开API</button>
+      <button class="btn btn-success" onclick="window.open(document.getElementById('api-url-text').value,'_blank')">打开API</button>
       <button class="btn btn-primary" onclick="closeApiModal()">关闭</button>
     </div>
   </div>
@@ -663,6 +660,11 @@ function goToEmails() {
   document.getElementById('emails').classList.add('active');
 }
 
+function backToEmailList(){
+  document.querySelectorAll('.content-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('emails').classList.add('active');
+}
+
 function getGroups(){
   const encryptedData=localStorage.getItem('emailGroups')||'';
   if(encryptedData){
@@ -673,10 +675,12 @@ function getGroups(){
   }
   return['默认分组'];
 }
+
 function saveGroups(groups){
   localStorage.setItem('emailGroups',CryptoJS.AES.encrypt(JSON.stringify(groups),ENCRYPT_KEY).toString());
   updateGroupSelectors();
 }
+
 function updateGroupSelectors(){
   const groups=getGroups();
   const selectElements=[document.getElementById('group-filter'),document.getElementById('batch-group-select'),document.getElementById('edit-group')];
@@ -708,6 +712,7 @@ function updateGroupSelectors(){
 function encryptData(data){
   return CryptoJS.AES.encrypt(JSON.stringify(data),ENCRYPT_KEY).toString();
 }
+
 function decryptData(cipherText){
   try{
     const bytes=CryptoJS.AES.decrypt(cipherText,ENCRYPT_KEY);
@@ -725,6 +730,7 @@ document.addEventListener('DOMContentLoaded',function(){
   initSearchEnter();
   initGroups();
   loadData();
+  initImportCollapse();
 
   const mailModal = document.getElementById('mail-modal');
   mailModal.addEventListener('click',function(e){
@@ -735,6 +741,20 @@ document.addEventListener('DOMContentLoaded',function(){
     document.getElementById('sidebar').classList.toggle('active');
   }
 });
+
+function initImportCollapse(){
+  const btn = document.getElementById('importToggleBtn');
+  const body = document.getElementById('importBody');
+  btn.onclick = ()=>{
+    body.classList.toggle('collapsed');
+    if(body.classList.contains('collapsed')){
+      btn.innerHTML = '<i class="fas fa-chevron-down"></i> 展开';
+    }else{
+      btn.innerHTML = '<i class="fas fa-chevron-up"></i> 折叠';
+    }
+  }
+}
+
 function initGroups(){
   const groups=getGroups();
   if(!groups.includes('默认分组')){
@@ -781,9 +801,11 @@ function loadData(){
   toggleNoData(filteredData.length===0);
   updateDashboard(data);
 }
+
 function updateDashboard(data){
   animateValue('account-count',parseInt(document.getElementById('account-count').textContent)||0,data.length,1000);
 }
+
 function animateValue(id,start,end,duration){
   let startTimestamp=null;
   const el=document.getElementById(id);
@@ -796,7 +818,6 @@ function animateValue(id,start,end,duration){
   requestAnimationFrame(step);
 }
 
-// ======================= ✅ 关键：生成API按钮函数 =======================
 function generateApiUrl(idx) {
   let data = decryptData(localStorage.getItem('emailData')) || [];
   let filtered = data;
@@ -809,14 +830,15 @@ function generateApiUrl(idx) {
   document.getElementById('api-url-text').value = api;
   document.getElementById('api-modal').style.display = 'flex';
 }
+
 function closeApiModal() { document.getElementById('api-modal').style.display = 'none'; }
+
 function copyApiUrl() {
   const input = document.getElementById('api-url-text');
   input.select();
   document.execCommand('copy');
   showModal('成功', 'API地址已复制到剪贴板');
 }
-// ======================================================================
 
 function renderTable(data){
   const tbody=document.querySelector('#email-table tbody');
@@ -824,6 +846,7 @@ function renderTable(data){
   const start=(currentPage-1)*itemsPerPage;
   const end=start+itemsPerPage;
   const pageData=data.slice(start,end);
+
   pageData.forEach((item,idx)=>{
     const tr=document.createElement('tr');
     tr.innerHTML=`
@@ -838,7 +861,6 @@ function renderTable(data){
       <td>${item.clientId}</td>
       <td class="refresh-token" title="${item.refreshToken}">${item.refreshToken}</td>
       <td>
-        <!-- ✅ 这里添加了 生成API 按钮 -->
         <button class="btn btn-success btn-sm" onclick="generateApiUrl(${start+idx})">生成API</button>
         <button class="btn btn-primary btn-sm" onclick="viewInbox(${start+idx})">收件箱</button>
         <button class="btn btn-warning btn-sm" onclick="viewJunk(${start+idx})">垃圾箱</button>
@@ -849,6 +871,7 @@ function renderTable(data){
     tbody.appendChild(tr);
   });
 }
+
 function toggleSinglePwd(btn,pwd){
   const span=btn.previousElementSibling;
   const icon=btn.querySelector('i');
@@ -870,6 +893,7 @@ function initSelectAll(){
     if(e.target.type==='checkbox')updateSelectedItems();
   });
 }
+
 function updateSelectedItems(){
   const cbs=document.querySelectorAll('#email-table tbody input[type="checkbox"]:checked');
   selectedItems=Array.from(cbs).map(cb=>cb.dataset.email);
@@ -885,6 +909,7 @@ function batchDelete(){
     showModal('成功',`已删除 ${selectedItems.length} 条`);
   });
 }
+
 function deleteAllEmails(){
   let data=decryptData(localStorage.getItem('emailData'))||[];
   if(data.length===0)return showModal('提示','暂无数据');
@@ -967,17 +992,20 @@ function changePage(page){
   renderTable(filtered);
   renderPagination(filtered.length);
 }
+
 function changeItemsPerPage(val){
   itemsPerPage=parseInt(val);
   currentPage=1;
   loadData();
 }
+
 function toggleNoData(flag){
   document.getElementById('no-data').style.display=flag?'block':'none';
 }
 
 function viewInbox(idx){loadMailList(idx,'INBOX');}
 function viewJunk(idx){loadMailList(idx,'Junk');}
+
 function loadMailList(tableIndex,mailbox){
   showLoading();
   let data=decryptData(localStorage.getItem('emailData'))||[];
@@ -995,7 +1023,9 @@ function loadMailList(tableIndex,mailbox){
     }
     return res.json();
   }).then(data=>{
-    mailData=data;originalMailData=[...data];
+    mailData=data.map(m=>({...m,source:mailbox==='INBOX'?'收件箱':'垃圾箱'}));
+    originalMailData=[...mailData];
+    currentMailPage=1;
     document.querySelectorAll('.content-section').forEach(s=>s.classList.remove('active'));
     document.getElementById('mail-list').classList.add('active');
     renderMailTable(mailData);
@@ -1005,16 +1035,55 @@ function loadMailList(tableIndex,mailbox){
   }).finally(()=>hideLoading());
 }
 
+function searchFetchMail(){
+  const kw = document.getElementById('searchFetchInput').value.trim().toLowerCase();
+  if(!kw) return showModal('提示','请输入邮箱账号');
+
+  let allData = decryptData(localStorage.getItem('emailData'))||[];
+  const target = allData.find(x=>x.email.toLowerCase()===kw);
+  if(!target) return showModal('未找到','本地列表中无此邮箱');
+
+  showLoading();
+  const pwd=decryptData(localStorage.getItem('password'))||'';
+
+  const urlInbox = `/api/mail-all?refresh_token=${target.refreshToken}&client_id=${target.clientId}&email=${target.email}&mailbox=INBOX&response_type=json&password=${pwd}`;
+  const urlJunk = `/api/mail-all?refresh_token=${target.refreshToken}&client_id=${target.clientId}&email=${target.email}&mailbox=Junk&response_type=json&password=${pwd}`;
+
+  Promise.all([
+    fetch(urlInbox).then(r=>r.ok?r.json():[]),
+    fetch(urlJunk).then(r=>r.ok?r.json():[])
+  ]).then(([inboxList,junkList])=>{
+    const inbox = inboxList.map(m=>({...m,source:'收件箱'}));
+    const junk = junkList.map(m=>({...m,source:'垃圾箱'}));
+    const all = [...inbox,...junk];
+
+    all.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+    mailData = all;
+    originalMailData = [...all];
+    currentMailPage = 1;
+
+    document.querySelectorAll('.content-section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('mail-list').classList.add('active');
+    renderMailTable(mailData);
+  }).catch(()=>{
+    showModal('错误','取件失败，请稍后重试');
+  }).finally(()=>hideLoading());
+}
+
 function renderMailTable(data){
   const tbody=document.querySelector('#mail-table tbody');
   tbody.innerHTML='';
   document.getElementById('no-data-mail').style.display=data.length?'none':'block';
+
   const start=(currentMailPage-1)*mailItemsPerPage;
   const end=start+mailItemsPerPage;
   const pageData=data.slice(start,end);
+
   pageData.forEach((item,idx)=>{
     const tr=document.createElement('tr');
     tr.innerHTML=`
+      <td>${item.source||'未知'}</td>
       <td>${item.send}</td>
       <td>${item.subject}</td>
       <td>${item.date}</td>
@@ -1022,6 +1091,7 @@ function renderMailTable(data){
     `;
     tbody.appendChild(tr);
   });
+
   renderMailPagination(data.length);
 }
 
@@ -1093,18 +1163,21 @@ function changeMailPage(page){
   const list=mailSearchKeyword?originalMailData.filter(x=>x.send.toLowerCase().includes(mailSearchKeyword)||x.subject.toLowerCase().includes(mailSearchKeyword)):originalMailData;
   renderMailTable(list);
 }
+
 function searchMails(){
   mailSearchKeyword=document.getElementById('mail-search').value.trim().toLowerCase();
   currentMailPage=1;
   const list=originalMailData.filter(x=>x.send.toLowerCase().includes(mailSearchKeyword)||x.subject.toLowerCase().includes(mailSearchKeyword));
   renderMailTable(list);
 }
+
 function clearMailSearch(){
   document.getElementById('mail-search').value='';
   mailSearchKeyword='';
   currentMailPage=1;
   renderMailTable(originalMailData);
 }
+
 function viewMail(idx){
   const list=mailSearchKeyword?originalMailData.filter(x=>x.send.toLowerCase().includes(mailSearchKeyword)||x.subject.toLowerCase().includes(mailSearchKeyword)):originalMailData;
   const item=list[idx];
@@ -1115,6 +1188,7 @@ function viewMail(idx){
   document.getElementById('mail-modal-content').innerHTML=item.html||item.text;
   document.getElementById('mail-modal').style.display='flex';
 }
+
 function closeMailModal(){
   document.getElementById('mail-modal').style.display='none';
 }
@@ -1125,6 +1199,7 @@ function showDeleteConfirm(idx){
   document.getElementById('confirm-message').innerText='确定删除该邮箱？不可恢复';
   document.getElementById('confirm-modal').style.display='flex';
 }
+
 function deleteEmail(idx){
   let data=decryptData(localStorage.getItem('emailData'))||[];
   let filtered=data;
@@ -1190,10 +1265,8 @@ function processImportLines(lines) {
     const pwd = arr[1] || '';
     const cid = arr[2] || '';
     const rt = arr[3] || '';
-
     if (!email || !pwd || !cid || !rt) { err++; return; }
     if (exist.has(email.toLowerCase())) { dup++; return; }
-
     data.push({ email, password:pwd, group:'默认分组', remark:'', clientId:cid, refreshToken:rt });
     exist.add(email.toLowerCase());
     ok++;
@@ -1236,14 +1309,18 @@ function toggleAllPasswords(){
 function initSearchEnter(){
   document.getElementById('email-search').addEventListener('keypress',e=>{if(e.key==='Enter')searchEmails();});
   document.getElementById('mail-search').addEventListener('keypress',e=>{if(e.key==='Enter')searchMails();});
+  document.getElementById('searchFetchInput').addEventListener('keypress',e=>{if(e.key==='Enter')searchFetchMail();});
 }
+
 function searchEmails(){
   searchKeyword=document.getElementById('email-search').value.trim().toLowerCase();
   currentPage=1;loadData();
 }
+
 function clearSearch(){
   document.getElementById('email-search').value='';searchKeyword='';currentPage=1;loadData();
 }
+
 function setPassword(){
   const pwd=document.getElementById('password').value;
   if(pwd)localStorage.setItem('password',encryptData(pwd));
@@ -1259,6 +1336,7 @@ function createGroup(){
   document.getElementById('new-group').value='';
   showModal('成功','分组创建完成');
 }
+
 function deleteSelectedGroup(){
   const val=document.getElementById('group-filter').value;
   if(val==='all'||val==='默认分组')return showModal('错误','禁止删除该分组');
@@ -1285,6 +1363,7 @@ function deleteSelectedGroup(){
     showModal('成功','分组已删除');
   }
 }
+
 function filterByGroup(){
   currentGroupFilter=document.getElementById('group-filter').value;
   currentPage=1;loadData();
@@ -1298,6 +1377,7 @@ function showBatchGroupConfirm(){
   document.getElementById('target-group-name').innerText=target;
   document.getElementById('batch-group-modal').style.display='flex';
 }
+
 function confirmBatchGroup(){
   const target=document.getElementById('batch-group-select').value;
   let data=decryptData(localStorage.getItem('emailData'))||[];
@@ -1307,6 +1387,7 @@ function confirmBatchGroup(){
   loadData();
   showModal('成功',`已将 ${selectedItems.length} 个邮箱移入分组：${target}`);
 }
+
 function closeBatchGroupModal(){document.getElementById('batch-group-modal').style.display='none';}
 
 function editEmail(idx){
@@ -1325,7 +1406,9 @@ function editEmail(idx){
   document.getElementById('edit-group').value=item.group||'默认分组';
   document.getElementById('edit-modal').style.display='flex';
 }
+
 function closeEditModal(){document.getElementById('edit-modal').style.display='none';}
+
 function saveEdit(){
   const oldMail=document.getElementById('edit-email-original').value;
   const pwd=document.getElementById('edit-password').value;
@@ -1354,17 +1437,21 @@ function showModal(title,msg){
   document.getElementById('modal-message').innerHTML=msg;
   document.getElementById('modal').style.display='flex';
 }
+
 function closeModal(){document.getElementById('modal').style.display='none';}
+
 function showConfirmModal(title,msg,cb){
   confirmCallback=cb;
   document.getElementById('confirm-title').innerText=title;
   document.getElementById('confirm-message').innerText=msg;
   document.getElementById('confirm-modal').style.display='flex';
 }
+
 function confirmAction(){
   if(confirmCallback)confirmCallback();
   closeConfirmModal();
 }
+
 function closeConfirmModal(){document.getElementById('confirm-modal').style.display='none';}
 </script>
 </body>
