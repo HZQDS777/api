@@ -84,7 +84,7 @@ tailwind.config = {
       <i class="fa fa-exchange text-[80px] text-neon text-shadow-neon"></i>
     </div>
     <h1 class="text-[clamp(1.8rem,5vw,3rem)] font-bold text-neon text-shadow-neon mb-6 leading-tight">
-      服务升级·线路升级优化 · 域名更换
+      服务升级·线路升级优化 · 域名更换·10秒后自动跳转
     </h1>
     <p class="text-xl text-gray-200 mb-2">旧域名一周后正式关闭</p>
     <p class="text-gray-400 mb-8">新站点：小黑服务站</p>
@@ -119,8 +119,8 @@ document.getElementById("new-url").innerText = newDomain;
 const noticeReason = `因原域名线路不稳定、卡顿及线路bug，本站进行线路升级与服务优化。
 旧域名即将一周后停用，请各位尽快保存新地址，更新浏览器收藏夹等。`;
 document.getElementById("notice-reason").innerText = noticeReason;
-let time = 20;
-const total = 20;
+let time = 10;
+const total = 10;
 const countEl = document.getElementById('count');
 const progressBar = document.getElementById('progressBar');
 const btn = document.getElementById('goBtn');
