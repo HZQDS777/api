@@ -84,7 +84,7 @@ tailwind.config = {
       <i class="fa fa-exchange text-[80px] text-neon text-shadow-neon"></i>
     </div>
     <h1 class="text-[clamp(1.8rem,5vw,3rem)] font-bold text-neon text-shadow-neon mb-6 leading-tight">
-      服务升级·线路升级优化 · 域名更换·10秒后自动跳转
+      服务升级·线路升级优化 · 域名更换·60秒后自动跳转
     </h1>
     <p class="text-xl text-gray-200 mb-2">旧域名一周后正式关闭</p>
     <p class="text-gray-400 mb-8">新站点：小黑服务站</p>
@@ -116,11 +116,12 @@ tailwind.config = {
 <script>
 const newDomain = "https://xiaoheifk.cn";
 document.getElementById("new-url").innerText = newDomain;
-const noticeReason = `api链接不能使用的https://xiaoheiapi.top记事本替换为https://xiaoheifk.cn
-        即可正常取件访问了 就是把原来的域名替换为新的域名即可正常使用 望各位周知！！`;
+const noticeReason = `api链接不能使用https://xiaoheiapi.top记事本替换
+                                   为https://xiaoheifk.cn即可正常取件访问了 就是把
+                                   原来的api地址域名替换为新的域名即可正常使用访问`;
 document.getElementById("notice-reason").innerText = noticeReason;
-let time = 10;
-const total = 10;
+let time = 60;
+const total = 60;
 const countEl = document.getElementById('count');
 const progressBar = document.getElementById('progressBar');
 const btn = document.getElementById('goBtn');
